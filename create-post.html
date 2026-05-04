@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Create Post</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== CREATE POST-SPECIFIC STYLES ========== */
+
+        /* Step 1: Image Upload */
+        .upload-section {
+            padding: 20px 16px;
+            text-align: center;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 4px;
+            margin-bottom: 16px;
+            min-height: 200px;
+        }
+        .upload-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .upload-box {
+            aspect-ratio: 1;
+            background: rgba(30, 41, 59, 0.5);
+            border: 2px dashed #334155;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-box:hover {
+            border-color: #ec4899;
+        }
+
+        .upload-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .upload-box .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            z-index: 2;
+            display: none;
+        }
+        .upload-box.has-image .remove-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-placeholder {
+            font-size: 2rem;
+            color: #64748b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .upload-placeholder span {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .upload-hint {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        /* Step 2: Details */
+        .details-section {
+            padding: 16px;
+            display: none;
+        }
+        .details-section.active {
+            display: block;
+        }
+
+        .preview-strip {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+            padding-bottom: 4px;
+        }
+        .preview-strip img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background: rgba(11, 14, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-bar h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .next-btn {
+            background: #ec4899;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .next-btn:hover {
+            background: #db2777;
+        }
+        .next-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #334155;
+            border-top-color: #ec4899;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1 id="stepTitle">New Post</h1>
+            <button class="next-btn" id="nextBtn" onclick="goToDetails()" disabled>Next</button>
+        </div>
+
+        <!-- Error -->
+        <div class="error-message" id="errorMsg"></div>
+
+        <!-- Step 1: Upload -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-grid" id="uploadGrid">
+                <div class="upload-box" onclick="document.getElementById('imageInput').click()">
+                    <div class="upload-placeholder">
+                        <span>📷</span>
+                        <span>Add Photos</span>
+                    </div>
+                </div>
+            </div>
+            <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;" onchange="handleImagesSelected(event)">
+            <p class="upload-hint">Tap to add up to 5 photos. First photo is the cover.</p>
+        </div>
+
+        <!-- Step 2: Details -->
+        <div class="details-section" id="detailsSection">
+            <div class="preview-strip" id="previewStrip"></div>
+
+            <div class="form-group">
+                <label for="caption">Caption</label>
+                <textarea id="caption" placeholder="Write a caption... Use # for categories and @ to mention people" maxlength="500"></textarea>
+                <div class="char-count"><span id="captionCount">0</span>/500</div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category">
+                    <option value="">Select category...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Title (display name)</label>
+                <input type="text" id="title" placeholder="e.g., Best Rolex in Kampala" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" placeholder="e.g., Kamwokya, Kampala" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label>Tags</label>
+                <div class="tags-input-wrapper" id="tagsWrapper" onclick="document.getElementById('tagInput').focus()">
+                    <input type="text" class="tag-input" id="tagInput" placeholder="Add tags..." maxlength="30">
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="shareBtn" onclick="sharePost()" style="font-size:1rem;border-radius:24px;">
+                🚀 Share Post
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Uploading images...</div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CREATE POST PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let selectedFiles = [];
+        let imagePreviews = [];
+        let tags = [];
+        let currentStep = 1;
+
+        // ============ INIT ============
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html?redirect=create-post.html';
+                return;
+            }
+            currentUser = user;
+            await loadCategories();
+            setupTagInput();
+            document.getElementById('caption').addEventListener('input', updateCaptionCount);
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb.from('categories').select('*').order('name');
+            const select = document.getElementById('category');
+            select.innerHTML = '<option value="">Select category...</option>' +
+                (categories || []).map(c => `<option value="${c.slug}">${c.icon || ''} ${c.name}</option>`).join('');
+        }
+
+        function setupTagInput() {
+            const input = document.getElementById('tagInput');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    const value = this.value.trim().replace(',', '');
+                    if (value && tags.length < 10 && !tags.includes(value.toLowerCase())) {
+                        tags.push(value.toLowerCase());
+                        renderTags();
+                    }
+                    this.value = '';
+                }
+                if (e.key === 'Backspace' && !this.value && tags.length > 0) {
+                    tags.pop();
+                    renderTags();
+                }
+            });
+        }
+
+        function renderTags() {
+            const wrapper = document.getElementById('tagsWrapper');
+            const input = document.getElementById('tagInput');
+            wrapper.querySelectorAll('.tag-pill').forEach(el => el.remove());
+            tags.forEach(tag => {
+                const pill = document.createElement('span');
+                pill.className = 'tag-pill';
+                pill.innerHTML = `#${tag} <span class="remove" onclick="removeTag('${tag}')">×</span>`;
+                wrapper.insertBefore(pill, input);
+            });
+        }
+
+        function removeTag(tag) {
+            tags = tags.filter(t => t !== tag);
+            renderTags();
+        }
+
+        function updateCaptionCount() {
+            document.getElementById('captionCount').textContent = document.getElementById('caption').value.length;
+        }
+
+        // ============ IMAGE HANDLING ============
+        function handleImagesSelected(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            // Limit to 5 total
+            const remaining = 5 - selectedFiles.length;
+            const toAdd = files.slice(0, remaining);
+
+            if (files.length > remaining) {
+                showToast(`Only ${remaining} more image${remaining !== 1 ? 's' : ''} allowed`);
+            }
+
+            toAdd.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('Each image must be under 10MB');
+                    return;
+                }
+                selectedFiles.push(file);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreviews.push(e.target.result);
+                    renderUploadGrid();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            renderUploadGrid();
+            updateNextButton();
+            event.target.value = '';
+        }
+
+        function renderUploadGrid() {
+            const grid = document.getElementById('uploadGrid');
+            const totalSlots = Math.max(selectedFiles.length + 1, 1);
+
+            if (selectedFiles.length <= 1) {
+                grid.className = 'upload-grid single';
+            } else {
+                grid.className = 'upload-grid';
+            }
+
+            let html = '';
+
+            // Show selected images
+            imagePreviews.forEach((preview, i) => {
+                html += `
+                    <div class="upload-box has-image">
+                        <img src="${preview}" alt="Preview ${i + 1}">
+                        <button class="remove-btn" onclick="removeImage(${i})">✕</button>
+                    </div>
+                `;
+            });
+
+            // Add upload box if less than 5
+            if (selectedFiles.length < 5) {
+                html += `
+                    <div class="upload-box" onclick="document.getElementById('imageInput').click()">
+                        <div class="upload-placeholder">
+                            <span>+</span>
+                            <span>Add</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+
+            // Update preview strip in step 2
+            const strip = document.getElementById('previewStrip');
+            if (strip) {
+                strip.innerHTML = imagePreviews.map(p => `<img src="${p}" alt="Preview">`).join('');
+            }
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            imagePreviews.splice(index, 1);
+            renderUploadGrid();
+            updateNextButton();
+        }
+
+        function updateNextButton() {
+            document.getElementById('nextBtn').disabled = selectedFiles.length === 0;
+        }
+
+        // ============ STEP NAVIGATION ============
+        function goToDetails() {
+            if (selectedFiles.length === 0) {
+                showError('Please add at least one photo.');
+                return;
+            }
+            currentStep = 2;
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('detailsSection').classList.add('active');
+            document.getElementById('stepTitle').textContent = 'Details';
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('shareBtn').style.display = 'block';
+            renderUploadGrid(); // refresh preview strip
+        }
+
+        function goBack() {
+            if (currentStep === 2) {
+                currentStep = 1;
+                document.getElementById('uploadSection').style.display = 'block';
+                document.getElementById('detailsSection').classList.remove('active');
+                document.getElementById('stepTitle').textContent = 'New Post';
+                document.getElementById('nextBtn').style.display = 'block';
+                document.getElementById('shareBtn').style.display = 'none';
+            } else {
+                window.history.back();
+            }
+        }
+
+        // ============ SHARE POST ============
+        async function sharePost() {
+            const caption = document.getElementById('caption').value.trim();
+            const categorySlug = document.getElementById('category').value;
+            const title = document.getElementById('title').value.trim() || caption.substring(0, 50) || 'Untitled';
+            const location = document.getElementById('location').value.trim();
+
+            if (!title) {
+                showError('Please enter a title.');
+                return;
+            }
+            if (!categorySlug) {
+                showError('Please select a category.');
+                return;
+            }
+
+            const shareBtn = document.getElementById('shareBtn');
+            shareBtn.disabled = true;
+            shareBtn.textContent = '⏳ Posting...';
+            showLoading('Uploading images...');
+
+            try {
+                // Upload images
+                const imageUrls = [];
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    showLoading(`Uploading image ${i + 1} of ${selectedFiles.length}...`);
+                    const file = selectedFiles[i];
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${currentUser.id}_${Date.now()}_${i}.${ext}`;
+
+                    const { data, error } = await sb.storage
+                        .from('listing-images')
+                        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+                    if (error) throw new Error(`Upload failed: ${error.message}`);
+
+                    const { data: urlData } = sb.storage.from('listing-images').getPublicUrl(data.path);
+                    imageUrls.push(urlData.publicUrl);
+                }
+
+                // Get category ID from slug
+                const { data: catData, error: catError } = await sb
+                    .from('categories')
+                    .select('id')
+                    .eq('slug', categorySlug)
+                    .single();
+                if (catError || !catData) throw new Error('Invalid category.');
+
+                // Extract mentions from caption
+                const mentions = (caption.match(/@(\w+)/g) || []).map(m => m.substring(1));
+
+                // Create listing
+                const { data: listing, error: insertError } = await sb
+                    .from('listings')
+                    .insert({
+                        category_id: catData.id,
+                        submitted_by: currentUser.id,
+                        title: title,
+                        caption: caption || null,
+                        description: caption || null,
+                        image_url: imageUrls[0] || null,
+                        images: imageUrls,
+                        location: location || null,
+                        tags: tags.length > 0 ? tags : null,
+                        mentions: mentions.length > 0 ? mentions : null
+                    })
+                    .select()
+                    .single();
+
+                if (insertError) throw insertError;
+
+                hideLoading();
+                showToast('✅ Post shared!');
+
+                // Redirect to the new listing
+                setTimeout(() => {
+                    window.location.href = `listing.html?id=${listing.id}`;
+                }, 800);
+
+            } catch (error) {
+                hideLoading();
+                showError(error.message || 'Error creating post.');
+                shareBtn.disabled = false;
+                shareBtn.textContent = '🚀 Share Post';
+            }
+        }
+
+        // ============ HELPERS ============
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('visible');
+            setTimeout(() => el.classList.remove('visible'), 4000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

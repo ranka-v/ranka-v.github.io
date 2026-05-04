@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Edit Listing</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== EDIT LISTING-SPECIFIC STYLES ========== */
+
+        /* Image Management Section */
+        .images-section {
+            margin-bottom: 24px;
+        }
+        .images-section h3 {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .current-images {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .current-image-card {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(15, 23, 42, 0.6);
+            flex-shrink: 0;
+        }
+        .current-image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .current-image-card .remove-image-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 11px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            transition: background 0.15s;
+        }
+        .current-image-card .remove-image-btn:hover {
+            background: #ef4444;
+        }
+        .current-image-card .cover-badge {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fbbf24;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .add-images-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            border: 2px dashed #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .add-images-box:hover {
+            border-color: #ec4899;
+        }
+        .add-images-box .plus-icon {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        .images-hint {
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        /* Existing image placeholder (no images) */
+        .no-images-placeholder {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 12px;
+            border: 1px dashed #334155;
+        }
+
+        /* Override card margin for form card */
+        .container > .card:first-of-type {
+            margin-top: 0;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns">
+                <a href="my-listings.html" class="btn btn-sm">My Listings</a>
+                <button class="btn btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Back link -->
+        <a href="my-listings.html" class="back-link">← Back to My Listings</a>
+
+        <!-- Form -->
+        <div class="card" id="formCard">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading listing...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // EDIT LISTING PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let listingData = null;
+        let tags = [];
+        let existingImages = []; // URLs of current images
+        let removedImages = []; // URLs to delete from storage
+        let newImageFiles = []; // New files to upload
+        let newImagePreviews = []; // Preview URLs for new files
+
+        const MAX_IMAGES = 5;
+
+        // ============ INIT ============
+        async function init() {
+            currentUser = await requireAuth('edit-listing.html');
+            if (!currentUser) return;
+
+            const listingId = getUrlParam('id');
+            if (!listingId) {
+                document.getElementById('formCard').innerHTML = `
+                    <div style="text-align:center;padding:40px;">
+                        <p style="color:#ef4444;">No listing ID provided.</p>
+                        <a href="my-listings.html" class="btn" style="margin-top:12px;">Back to My Listings</a>
+                    </div>`;
+                return;
+            }
+
+            await loadListing(listingId);
+        }
+
+        // ============ LOAD LISTING ============
+        async function loadListing(listingId) {
+            const { data: listing, error } = await sb
+                .from('listings')
+                .select(`
+                    id, title, description, location, link, images, image_url, tags, category_id,
+                    categories:category_id (id, name, slug, icon)
+                `)
+                .eq('id', listingId)
+                .eq('submitted_by', currentUser.id)
+                .single();
+
+            if (error || !listing) {
+                document.getElementById('formCard').innerHTML = `
+                    <div style="text-align:center;padding:40px;">
+                        <p style="color:#ef4444;">Listing not found or you don't have permission to edit it.</p>
+                        <a href="my-listings.html" class="btn" style="margin-top:12px;">Back to My Listings</a>
+                    </div>`;
+                return;
+            }
+
+            listingData = listing;
+            tags = listing.tags || [];
+            
+            // Determine existing images
+            if (listing.images && listing.images.length > 0) {
+                existingImages = [...listing.images];
+            } else if (listing.image_url) {
+                existingImages = [listing.image_url];
+            } else {
+                existingImages = [];
+            }
+
+            await loadCategories();
+            renderForm();
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            const select = document.getElementById('category');
+            if (!select) return;
+
+            const options = (categories || []).map(cat =>
+                `<option value="${cat.slug}" ${cat.id === listingData.category_id ? 'selected' : ''}>${cat.icon || ''} ${cat.name}</option>`
+            ).join('');
+            select.innerHTML = `<option value="">Select a category...</option>${options}`;
+        }
+
+        function renderForm() {
+            const card = document.getElementById('formCard');
+            card.innerHTML = `
+                <h2>✏️ Edit Listing</h2>
+                <p class="subtitle">Update your listing details and images.</p>
+
+                <div class="error-message" id="errorMsg"></div>
+                <div class="success-message" id="successMsg"></div>
+
+                <form id="editForm">
+                    <!-- Images Section -->
+                    <div class="images-section">
+                        <h3>🖼️ Images (${existingImages.length + newImageFiles.length}/${MAX_IMAGES})</h3>
+                        <div class="current-images" id="currentImages">
+                            ${renderImagesHTML()}
+                        </div>
+                        ${(existingImages.length + newImageFiles.length) < MAX_IMAGES ? `
+                            <div class="add-images-box" onclick="document.getElementById('newImageInput').click()">
+                                <span class="plus-icon">+</span>
+                            </div>
+                            <input type="file" id="newImageInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;" onchange="handleNewImages(event)">
+                        ` : ''}
+                        <p class="images-hint">First image is the cover. Max 5 images. Tap ✕ to remove.</p>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label for="category">Category <span class="required">*</span></label>
+                        <select id="category" required>
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label for="title">Title <span class="required">*</span></label>
+                        <input type="text" id="title" value="${esc(listingData.title)}" placeholder="e.g., Mama Joyce's Rolex Stand" required maxlength="100">
+                        <span class="char-count"><span id="titleCount">${listingData.title.length}</span>/100</span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" placeholder="What makes this special? Where is it? Why should people vote for it?" maxlength="500">${esc(listingData.description || '')}</textarea>
+                        <span class="char-count"><span id="descCount">${(listingData.description || '').length}</span>/500</span>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label for="location">Location (optional)</label>
+                        <input type="text" id="location" value="${esc(listingData.location || '')}" placeholder="e.g., Kamwokya, Kampala" maxlength="100">
+                    </div>
+
+                    <!-- External Link -->
+                    <div class="form-group">
+                        <label for="link">Website / Social Link (optional)</label>
+                        <input type="url" id="link" value="${esc(listingData.link || '')}" placeholder="https://..." maxlength="300">
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="form-group">
+                        <label>Tags (optional)</label>
+                        <div class="tags-input-wrapper" id="tagsWrapper" onclick="document.getElementById('tagInput').focus()">
+                            <input type="text" class="tag-input" id="tagInput" placeholder="Add a tag and press Enter..." maxlength="30">
+                        </div>
+                        <p class="helper-text">Press Enter after each tag. Max 5 tags.</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" id="saveBtn">
+                        💾 Save Changes
+                    </button>
+                </form>
+            `;
+
+            // Re-populate categories dropdown
+            loadCategories();
+
+            // Render existing tags
+            renderTags();
+
+            // Attach event listeners
+            document.getElementById('title').addEventListener('input', updateCharCounts);
+            document.getElementById('description').addEventListener('input', updateCharCounts);
+            document.getElementById('tagInput').addEventListener('keydown', handleTagInput);
+            document.getElementById('editForm').addEventListener('submit', handleSave);
+        }
+
+        function renderImagesHTML() {
+            const totalImages = existingImages.length + newImagePreviews.length;
+            
+            if (totalImages === 0) {
+                return `<div class="no-images-placeholder">No images yet. Add some below.</div>`;
+            }
+
+            let html = '';
+
+            // Existing images
+            existingImages.forEach((url, index) => {
+                html += `
+                    <div class="current-image-card">
+                        <img src="${url}" alt="Image ${index + 1}" onerror="this.style.display='none'">
+                        <button class="remove-image-btn" type="button" onclick="removeExistingImage(${index})">✕</button>
+                        ${index === 0 ? '<span class="cover-badge">Cover</span>' : ''}
+                    </div>`;
+            });
+
+            // New image previews
+            newImagePreviews.forEach((preview, index) => {
+                const overallIndex = existingImages.length + index;
+                html += `
+                    <div class="current-image-card">
+                        <img src="${preview}" alt="New Image ${index + 1}">
+                        <button class="remove-image-btn" type="button" onclick="removeNewImage(${index})">✕</button>
+                        ${overallIndex === 0 && existingImages.length === 0 ? '<span class="cover-badge">Cover</span>' : ''}
+                    </div>`;
+            });
+
+            return html;
+        }
+
+        function refreshImagesSection() {
+            const imagesContainer = document.getElementById('currentImages');
+            if (!imagesContainer) return;
+            imagesContainer.innerHTML = renderImagesHTML();
+
+            // Update add button visibility
+            const addBox = document.querySelector('.add-images-box');
+            const totalImages = existingImages.length + newImageFiles.length;
+            
+            if (addBox) {
+                if (totalImages >= MAX_IMAGES) {
+                    addBox.style.display = 'none';
+                } else {
+                    addBox.style.display = 'flex';
+                }
+            } else if (totalImages < MAX_IMAGES) {
+                // Re-insert add button if it was removed
+                const imagesSection = document.querySelector('.images-section');
+                if (imagesSection) {
+                    const existingAddBox = imagesSection.querySelector('.add-images-box');
+                    if (!existingAddBox) {
+                        const addBoxHTML = document.createElement('div');
+                        addBoxHTML.className = 'add-images-box';
+                        addBoxHTML.onclick = () => document.getElementById('newImageInput').click();
+                        addBoxHTML.innerHTML = '<span class="plus-icon">+</span>';
+                        imagesSection.appendChild(addBoxHTML);
+                        
+                        const inputHTML = document.createElement('input');
+                        inputHTML.type = 'file';
+                        inputHTML.id = 'newImageInput';
+                        inputHTML.accept = 'image/jpeg,image/png,image/webp';
+                        inputHTML.multiple = true;
+                        inputHTML.style.display = 'none';
+                        inputHTML.onchange = handleNewImages;
+                        imagesSection.appendChild(inputHTML);
+                    }
+                }
+            }
+
+            // Update heading counter
+            const heading = document.querySelector('.images-section h3');
+            if (heading) {
+                heading.textContent = `🖼️ Images (${totalImages}/${MAX_IMAGES})`;
+            }
+        }
+
+        function handleNewImages(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            const totalImages = existingImages.length + newImageFiles.length;
+            const remaining = MAX_IMAGES - totalImages;
+            const toAdd = files.slice(0, remaining);
+
+            if (files.length > remaining) {
+                showToast(`Only ${remaining} more image${remaining !== 1 ? 's' : ''} allowed (max ${MAX_IMAGES}).`);
+            }
+
+            toAdd.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    showToast('Each image must be under 10MB.');
+                    return;
+                }
+                newImageFiles.push(file);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    newImagePreviews.push(e.target.result);
+                    refreshImagesSection();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            refreshImagesSection();
+            event.target.value = '';
+        }
+
+        function removeExistingImage(index) {
+            if (!confirm('Remove this image? This will be permanent after saving.')) return;
+            
+            const removedUrl = existingImages.splice(index, 1)[0];
+            removedImages.push(removedUrl);
+            refreshImagesSection();
+        }
+
+        function removeNewImage(index) {
+            newImageFiles.splice(index, 1);
+            newImagePreviews.splice(index, 1);
+            refreshImagesSection();
+        }
+
+        // ============ CHARACTER COUNTS ============
+        function updateCharCounts() {
+            document.getElementById('titleCount').textContent = document.getElementById('title').value.length;
+            document.getElementById('descCount').textContent = document.getElementById('description').value.length;
+        }
+
+        // ============ TAGS ============
+        function handleTagInput(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const input = document.getElementById('tagInput');
+                const value = input.value.trim().replace(',', '');
+
+                if (value && tags.length < 5 && !tags.includes(value.toLowerCase())) {
+                    tags.push(value.toLowerCase());
+                    renderTags();
+                }
+                input.value = '';
+            }
+
+            if (e.key === 'Backspace' && !e.target.value && tags.length > 0) {
+                tags.pop();
+                renderTags();
+            }
+        }
+
+        function renderTags() {
+            const wrapper = document.getElementById('tagsWrapper');
+            if (!wrapper) return;
+
+            const input = document.getElementById('tagInput');
+            wrapper.querySelectorAll('.tag-item').forEach(el => el.remove());
+
+            tags.forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag-item';
+                tagEl.innerHTML = `${tag} <span class="tag-remove" onclick="removeTag('${tag}')">×</span>`;
+                wrapper.insertBefore(tagEl, input);
+            });
+
+            input.placeholder = tags.length >= 5 ? 'Max 5 tags' : 'Add a tag and press Enter...';
+            input.disabled = tags.length >= 5;
+        }
+
+        function removeTag(tag) {
+            tags = tags.filter(t => t !== tag);
+            renderTags();
+        }
+
+        // ============ SAVE ============
+        async function handleSave(e) {
+            e.preventDefault();
+
+            const categorySlug = document.getElementById('category').value;
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const link = document.getElementById('link').value.trim();
+            const saveBtn = document.getElementById('saveBtn');
+            const errorEl = document.getElementById('errorMsg');
+            const successEl = document.getElementById('successMsg');
+
+            errorEl.classList.remove('visible');
+            successEl.classList.remove('visible');
+
+            if (!categorySlug) {
+                errorEl.textContent = 'Please select a category.';
+                errorEl.classList.add('visible');
+                return;
+            }
+            if (!title || title.length < 3) {
+                errorEl.textContent = 'Title must be at least 3 characters.';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            if (existingImages.length + newImageFiles.length === 0) {
+                errorEl.textContent = 'Please keep at least one image.';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                // Get category ID from slug
+                const { data: catData, error: catError } = await sb
+                    .from('categories')
+                    .select('id')
+                    .eq('slug', categorySlug)
+                    .single();
+
+                if (catError || !catData) throw new Error('Invalid category selected.');
+
+                // Upload new images
+                const newImageUrls = [];
+                for (let i = 0; i < newImageFiles.length; i++) {
+                    saveBtn.textContent = `⏳ Uploading image ${i + 1}...`;
+                    const file = newImageFiles[i];
+                    const ext = file.name.split('.').pop();
+                    const fileName = `${currentUser.id}_${Date.now()}_edit_${i}.${ext}`;
+
+                    const { data, error: uploadError } = await sb.storage
+                        .from('listing-images')
+                        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+                    if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+
+                    const { data: urlData } = sb.storage.from('listing-images').getPublicUrl(data.path);
+                    newImageUrls.push(urlData.publicUrl);
+                }
+
+                // Delete removed images from storage
+                for (const url of removedImages) {
+                    try {
+                        // Extract path from URL
+                        const urlParts = url.split('/');
+                        const fileName = urlParts[urlParts.length - 1];
+                        const path = fileName; // Adjust if your bucket structure differs
+                        await sb.storage.from('listing-images').remove([path]);
+                    } catch (err) {
+                        console.warn('Could not delete image from storage:', url, err);
+                    }
+                }
+
+                // Combine images: existing (not removed) + new
+                const finalImages = [...existingImages, ...newImageUrls];
+
+                const { error } = await sb
+                    .from('listings')
+                    .update({
+                        category_id: catData.id,
+                        title: title,
+                        description: description || null,
+                        location: location || null,
+                        link: link || null,
+                        image_url: finalImages[0] || null,
+                        images: finalImages.length > 0 ? finalImages : null,
+                        tags: tags.length > 0 ? tags : null,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', listingData.id)
+                    .eq('submitted_by', currentUser.id);
+
+                if (error) throw error;
+
+                successEl.textContent = '✅ Listing updated successfully!';
+                successEl.classList.add('visible');
+                showToast('Listing saved!');
+
+                setTimeout(() => {
+                    window.location.href = `listing.html?id=${listingData.id}`;
+                }, 1000);
+
+            } catch (error) {
+                errorEl.textContent = error.message || 'Error updating listing.';
+                errorEl.classList.add('visible');
+                showToast('Error saving listing.');
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Changes';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Profile Settings</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== SETTINGS-SPECIFIC STYLES ========== */
+
+        /* Settings Card */
+        .settings-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid #334155;
+            border-radius: 28px;
+            padding: 28px 20px;
+            margin-bottom: 20px;
+        }
+        .settings-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: #fbbf24;
+        }
+        .settings-card .subtitle {
+            color: #94a3b8;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+        }
+
+        /* Avatar Section */
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .avatar-preview {
+            width: 90px;
+            height: 90px;
+            border-radius: 45px;
+            background: linear-gradient(135deg, #ec4899, #fbb8d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin: 0 auto 12px;
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .avatar-preview img {
+            width: 90px;
+            height: 90px;
+            border-radius: 45px;
+            object-fit: cover;
+        }
+        .avatar-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px;
+            font-size: 0.65rem;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .avatar-preview:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .avatar-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        /* Danger Zone */
+        .danger-zone {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .danger-zone h4 {
+            color: #ef4444;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .danger-zone p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns">
+                <a href="profile.html" class="btn btn-sm">View Profile</a>
+                <button class="btn btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Back link -->
+        <a href="profile.html" class="back-link">← Back to profile</a>
+
+        <!-- Settings Content -->
+        <div id="settingsContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading settings...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // SETTINGS PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let profileData = null;
+        let avatarFile = null;
+        let avatarPreviewUrl = null;
+
+        // ============ INIT ============
+        async function init() {
+            await checkAuth();
+            if (!currentUser) return;
+            await loadProfile();
+        }
+
+        // ============ AUTH ============
+        async function checkAuth() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+
+            if (!user) {
+                window.location.href = 'login.html?redirect=settings.html';
+                return;
+            }
+        }
+
+        // ============ LOAD PROFILE ============
+        async function loadProfile() {
+            const { data: profile, error } = await sb
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error || !profile) {
+                document.getElementById('settingsContent').innerHTML = `
+                    <div class="settings-card">
+                        <div style="text-align:center;padding:20px;">
+                            <p style="color:#ef4444;">Error loading profile.</p>
+                            <a href="profile.html" class="btn" style="margin-top:12px;">Go Back</a>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            profileData = profile;
+            renderSettings();
+        }
+
+        // ============ RENDER SETTINGS ============
+        function renderSettings() {
+            const content = document.getElementById('settingsContent');
+            const displayName = profileData.display_name || '';
+            const username = profileData.username || '';
+            const avatarLetter = (displayName || username || '?').charAt(0).toUpperCase();
+
+            content.innerHTML = `
+                <!-- Profile Settings -->
+                <div class="settings-card">
+                    <h2>👤 Profile Settings</h2>
+                    <p class="subtitle">Update your public profile information.</p>
+
+                    <div class="error-message" id="errorMsg"></div>
+                    <div class="success-message" id="successMsg"></div>
+
+                    <!-- Avatar -->
+                    <div class="avatar-section">
+                        <div class="avatar-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()">
+                            ${profileData.avatar_url
+                                ? `<img src="${profileData.avatar_url}" alt="Avatar">`
+                                : avatarLetter}
+                            <div class="avatar-overlay">Change</div>
+                        </div>
+                        <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleAvatarSelect(event)">
+                        <div class="avatar-actions">
+                            <button class="btn btn-sm" onclick="document.getElementById('avatarInput').click()">Upload Photo</button>
+                            ${profileData.avatar_url ? `<button class="btn btn-sm btn-danger" onclick="removeAvatar()">Remove</button>` : ''}
+                        </div>
+                        <p class="hint" style="text-align:center;">JPG, PNG, or WebP. Max 3MB.</p>
+                    </div>
+
+                    <form id="settingsForm">
+                        <!-- Display Name -->
+                        <div class="form-group">
+                            <label for="displayName">Display Name</label>
+                            <input type="text" id="displayName" value="${esc(displayName)}" placeholder="Your full name" maxlength="50">
+                            <p class="hint">This is how your name appears to others.</p>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" value="${esc(username)}" placeholder="yourname" maxlength="30" required>
+                            <p class="hint">3-30 characters. Letters, numbers, and underscores only. Changing this will change your profile URL.</p>
+                        </div>
+
+                        <!-- Email (read-only) -->
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" value="${currentUser.email || ''}" disabled>
+                            <p class="hint">Email cannot be changed here. Use the account section below to update it.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" id="saveBtn">
+                            💾 Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Account Settings -->
+                <div class="settings-card">
+                    <h2>🔐 Account</h2>
+                    <p class="subtitle">Manage your email and password.</p>
+
+                    <div class="form-group">
+                        <label for="newEmail">New Email</label>
+                        <input type="email" id="newEmail" placeholder="Enter new email address">
+                    </div>
+                    <button class="btn btn-block" onclick="updateEmail()" style="margin-bottom:16px;">📧 Update Email</button>
+
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" placeholder="Min. 6 characters" minlength="6">
+                    </div>
+                    <button class="btn btn-block" onclick="updatePassword()">🔒 Update Password</button>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="settings-card">
+                    <div class="danger-zone">
+                        <h4>⚠️ Danger Zone</h4>
+                        <p>Permanently delete your account and all your data. This action cannot be undone.</p>
+                        <button class="btn btn-danger" onclick="deleteAccount()">Delete My Account</button>
+                    </div>
+                </div>
+            `;
+
+            // Attach form listener after render
+            document.getElementById('settingsForm').addEventListener('submit', handleSaveProfile);
+
+            // Live username validation
+            document.getElementById('username').addEventListener('input', function() {
+                const val = this.value;
+                if (val.length > 0 && !isValidUsername(val)) {
+                    this.style.borderColor = '#ef4444';
+                } else {
+                    this.style.borderColor = '#334155';
+                }
+            });
+        }
+
+        // ============ AVATAR ============
+        function handleAvatarSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 3 * 1024 * 1024) {
+                showToast('Image must be less than 3MB.');
+                return;
+            }
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                showToast('Please select a JPG, PNG, or WebP image.');
+                return;
+            }
+
+            avatarFile = file;
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                avatarPreviewUrl = e.target.result;
+                const preview = document.getElementById('avatarPreview');
+                preview.innerHTML = `
+                    <img src="${avatarPreviewUrl}" alt="Preview">
+                    <div class="avatar-overlay">Change</div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function removeAvatar() {
+            if (!confirm('Remove your profile photo?')) return;
+
+            const { error } = await sb
+                .from('profiles')
+                .update({ avatar_url: null })
+                .eq('id', currentUser.id);
+
+            if (error) {
+                showToast('Error removing avatar.');
+                return;
+            }
+
+            profileData.avatar_url = null;
+            avatarFile = null;
+            avatarPreviewUrl = null;
+            renderSettings();
+            showToast('Avatar removed.');
+        }
+
+        async function uploadAvatar() {
+            if (!avatarFile) return profileData.avatar_url;
+
+            const fileName = `avatar_${currentUser.id}_${Date.now()}.${avatarFile.name.split('.').pop()}`;
+
+            const { data, error } = await sb.storage
+                .from('avatars')
+                .upload(fileName, avatarFile, {
+                    cacheControl: '3600',
+                    upsert: true
+                });
+
+            if (error) {
+                console.error('Avatar upload error:', error);
+                return null;
+            }
+
+            const { data: urlData } = sb.storage
+                .from('avatars')
+                .getPublicUrl(data.path);
+
+            return urlData.publicUrl;
+        }
+
+        // ============ SAVE PROFILE ============
+        async function handleSaveProfile(e) {
+            e.preventDefault();
+
+            const displayName = document.getElementById('displayName').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const saveBtn = document.getElementById('saveBtn');
+            const errorEl = document.getElementById('errorMsg');
+            const successEl = document.getElementById('successMsg');
+
+            errorEl.classList.remove('visible');
+            successEl.classList.remove('visible');
+
+            // Validate
+            if (!username) {
+                errorEl.textContent = 'Username is required.';
+                errorEl.classList.add('visible');
+                return;
+            }
+            if (!isValidUsername(username)) {
+                errorEl.textContent = 'Username must be 3-30 characters (letters, numbers, underscores only).';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = '⏳ Saving...';
+
+            try {
+                // Check username uniqueness
+                if (username !== profileData.username) {
+                    const { data: existing } = await sb
+                        .from('profiles')
+                        .select('id')
+                        .eq('username', username)
+                        .maybeSingle();
+
+                    if (existing && existing.id !== currentUser.id) {
+                        throw new Error('This username is already taken.');
+                    }
+                }
+
+                // Upload avatar if changed
+                let avatarUrl = profileData.avatar_url;
+                if (avatarFile) {
+                    const uploadedUrl = await uploadAvatar();
+                    if (uploadedUrl) avatarUrl = uploadedUrl;
+                }
+
+                // Update profile
+                const { error } = await sb
+                    .from('profiles')
+                    .update({
+                        display_name: displayName || null,
+                        username: username,
+                        avatar_url: avatarUrl
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+
+                // Update auth metadata
+                await sb.auth.updateUser({
+                    data: {
+                        display_name: displayName || username,
+                        username: username
+                    }
+                });
+
+                profileData.display_name = displayName;
+                profileData.username = username;
+                profileData.avatar_url = avatarUrl;
+                avatarFile = null;
+                avatarPreviewUrl = null;
+
+                successEl.textContent = '✅ Profile updated successfully!';
+                successEl.classList.add('visible');
+                showToast('Profile saved!');
+
+            } catch (error) {
+                errorEl.textContent = error.message || 'Error saving profile.';
+                errorEl.classList.add('visible');
+                showToast('Error saving profile.');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save Changes';
+        }
+
+        // ============ UPDATE EMAIL ============
+        async function updateEmail() {
+            const newEmail = document.getElementById('newEmail').value.trim();
+            if (!newEmail) {
+                showToast('Please enter a new email address.');
+                return;
+            }
+
+            const { error } = await sb.auth.updateUser({ email: newEmail });
+
+            if (error) {
+                showToast(error.message);
+            } else {
+                showToast('Confirmation emails sent to both addresses.');
+                document.getElementById('newEmail').value = '';
+            }
+        }
+
+        // ============ UPDATE PASSWORD ============
+        async function updatePassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            if (!newPassword || newPassword.length < 6) {
+                showToast('Password must be at least 6 characters.');
+                return;
+            }
+
+            const { error } = await sb.auth.updateUser({ password: newPassword });
+
+            if (error) {
+                showToast(error.message);
+            } else {
+                showToast('Password updated!');
+                document.getElementById('newPassword').value = '';
+            }
+        }
+
+        // ============ DELETE ACCOUNT ============
+        async function deleteAccount() {
+            if (!confirm('Are you absolutely sure? This will permanently delete your account, all your listings, votes, and comments. This cannot be undone.')) return;
+            
+            // This requires server-side function or admin privileges
+            showToast('Account deletion requires admin assistance. Please contact support.');
+        }
+
+        // ============ HELPERS ============
+        function isValidUsername(username) {
+            return /^[a-zA-Z0-9_]{3,30}$/.test(username);
+        }
+
+        init();
+    </script>
+</body>
+</html>

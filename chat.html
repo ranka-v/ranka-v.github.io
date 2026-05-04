@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Chat</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== CHAT-SPECIFIC STYLES ========== */
+
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-subtitle {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .online-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 4px;
+            background: #10b981;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        /* Messages Container */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Message Row */
+        .message-row {
+            display: flex;
+            gap: 8px;
+            max-width: 85%;
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.mine {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #ec4899, #fbb8d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+
+        .message-bubble {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid #1e293b;
+            border-radius: 18px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message-row.mine .message-bubble {
+            background: rgba(236, 72, 153, 0.2);
+            border-color: rgba(236, 72, 153, 0.3);
+        }
+
+        .message-user {
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: #ec4899;
+            margin-bottom: 2px;
+        }
+
+        .message-time {
+            font-size: 0.6rem;
+            color: #64748b;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .messages-date-divider {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #64748b;
+            padding: 8px 0;
+        }
+
+        /* Empty Chat */
+        .empty-chat {
+            text-align: center;
+            padding: 40px 16px;
+            color: #64748b;
+        }
+        .empty-chat .icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        /* Input Bar */
+        .input-bar {
+            flex-shrink: 0;
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px 24px;
+            background: rgba(11, 14, 20, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .input-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 24px;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.6);
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .input-bar input:focus {
+            outline: none;
+            border-color: #ec4899;
+        }
+        .input-bar input::placeholder {
+            color: #64748b;
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 22px;
+            border: none;
+            background: #ec4899;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .send-btn:hover {
+            background: #db2777;
+        }
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Flex layout for full-height chat */
+        .app-chat {
+            max-width: 500px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app-chat">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <button class="back-btn" onclick="history.back()">←</button>
+            <div class="chat-info">
+                <div class="chat-title" id="chatTitle">Group Chat</div>
+                <div class="chat-subtitle"><span class="online-dot"></span> <span id="participantCount">0</span> participants</div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-container" id="messagesContainer">
+            <div class="loading">
+                <div class="spinner sm"></div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-bar" id="inputBar">
+            <input type="text" id="messageInput" placeholder="Type a message..." maxlength="500" onkeydown="if(event.key==='Enter')sendMessage()">
+            <button class="send-btn" onclick="sendMessage()" id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CHAT PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let roomId = null;
+        let listingData = null;
+        let subscription = null;
+        let participantSet = new Set();
+
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html?redirect=chat.html';
+                return;
+            }
+            currentUser = user;
+
+            const listingId = getUrlParam('listing');
+            if (!listingId) {
+                showToast('No listing specified');
+                return;
+            }
+
+            await loadListing(listingId);
+            await loadRoom(listingId);
+            await loadMessages();
+            subscribeToMessages();
+        }
+
+        async function loadListing(listingId) {
+            const { data } = await sb
+                .from('listings')
+                .select('title, submitted_by')
+                .eq('id', listingId)
+                .single();
+            listingData = data;
+            if (data) {
+                document.getElementById('chatTitle').textContent = `💭 ${data.title}`;
+                document.title = `Ranka • Chat — ${data.title}`;
+            }
+        }
+
+        async function loadRoom(listingId) {
+            const { data: room } = await sb
+                .from('chat_rooms')
+                .select('id')
+                .eq('listing_id', listingId)
+                .single();
+            if (room) roomId = room.id;
+        }
+
+        async function loadMessages() {
+            const container = document.getElementById('messagesContainer');
+
+            if (!roomId) {
+                container.innerHTML = '<div class="empty-chat"><div class="icon">💭</div><p>Chat room not found.</p></div>';
+                return;
+            }
+
+            const { data: messages } = await sb
+                .from('chat_messages')
+                .select(`id, content, created_at, user_id, profiles:user_id (username, display_name)`)
+                .eq('room_id', roomId)
+                .order('created_at', { ascending: true })
+                .limit(100);
+
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="empty-chat"><div class="icon">💬</div><p>No messages yet. Start the conversation!</p></div>';
+            } else {
+                renderMessages(messages);
+            }
+
+            // Update participant count
+            if (messages) {
+                messages.forEach(m => participantSet.add(m.user_id));
+                updateParticipantCount();
+            }
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            let html = '';
+            let lastDate = '';
+
+            messages.forEach(msg => {
+                const profile = msg.profiles || {};
+                const displayName = profile.display_name || profile.username || 'User';
+                const isMine = currentUser && msg.user_id === currentUser.id;
+                const msgDate = new Date(msg.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                if (msgDate !== lastDate) {
+                    html += `<div class="messages-date-divider">${msgDate}</div>`;
+                    lastDate = msgDate;
+                }
+
+                html += `
+                    <div class="message-row ${isMine ? 'mine' : ''}">
+                        ${!isMine ? `<div class="message-avatar">${displayName.charAt(0).toUpperCase()}</div>` : ''}
+                        <div>
+                            ${!isMine ? `<div class="message-user">${esc(displayName)}</div>` : ''}
+                            <div class="message-bubble">${esc(msg.content)}</div>
+                            <div class="message-time">${timeAgo(msg.created_at)}</div>
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function subscribeToMessages() {
+            if (!roomId) return;
+
+            subscription = sb
+                .channel(`room_${roomId}`)
+                .on('postgres_changes', {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `room_id=eq.${roomId}`
+                }, async (payload) => {
+                    const msg = payload.new;
+                    const { data: profile } = await sb
+                        .from('profiles')
+                        .select('username, display_name')
+                        .eq('id', msg.user_id)
+                        .single();
+
+                    const displayName = profile?.display_name || profile?.username || 'User';
+                    const isMine = currentUser && msg.user_id === currentUser.id;
+                    const container = document.getElementById('messagesContainer');
+
+                    // Remove empty state if present
+                    if (container.querySelector('.empty-chat')) container.innerHTML = '';
+
+                    const html = `
+                        <div class="message-row ${isMine ? 'mine' : ''}">
+                            ${!isMine ? `<div class="message-avatar">${displayName.charAt(0).toUpperCase()}</div>` : ''}
+                            <div>
+                                ${!isMine ? `<div class="message-user">${esc(displayName)}</div>` : ''}
+                                <div class="message-bubble">${esc(msg.content)}</div>
+                                <div class="message-time">now</div>
+                            </div>
+                        </div>`;
+
+                    container.insertAdjacentHTML('beforeend', html);
+                    container.scrollTop = container.scrollHeight;
+
+                    // Update participant count
+                    participantSet.add(msg.user_id);
+                    updateParticipantCount();
+                })
+                .subscribe();
+        }
+
+        function updateParticipantCount() {
+            document.getElementById('participantCount').textContent = participantSet.size;
+        }
+
+        async function sendMessage() {
+            if (!currentUser || !roomId) return;
+
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            input.disabled = true;
+
+            const { error } = await sb.from('chat_messages').insert({
+                room_id: roomId,
+                user_id: currentUser.id,
+                content
+            });
+
+            if (!error) {
+                input.value = '';
+                input.focus();
+            } else {
+                showToast('Failed to send message');
+            }
+
+            btn.disabled = false;
+            input.disabled = false;
+        }
+
+        // Cleanup subscription on leave
+        window.addEventListener('beforeunload', () => {
+            if (subscription) sb.removeChannel(subscription);
+        });
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Rankings</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== CATEGORY PAGE-SPECIFIC STYLES ========== */
+
+        /* Category Header */
+        .category-header {
+            padding: 16px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .category-icon-large {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .category-name-large {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .category-desc {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .category-stats {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 12px;
+        }
+
+        .cat-stat {
+            text-align: center;
+        }
+
+        .cat-stat-value {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .cat-stat-label {
+            color: #64748b;
+            font-size: 0.7rem;
+        }
+
+        .follow-cat-btn {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            background: #ec4899;
+            color: white;
+            transition: all 0.2s;
+        }
+        .follow-cat-btn.following {
+            background: transparent;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        .follow-cat-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Category Selector */
+        .category-selector {
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .category-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Leaderboard */
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 16px 8px;
+        }
+        .leaderboard-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fbbf24;
+        }
+
+        .listing-count {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0 16px 80px;
+        }
+
+        /* Rank Card */
+        .rank-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+        }
+        .rank-card:hover {
+            border-color: #334155;
+            background: rgba(30, 41, 59, 0.6);
+        }
+        .rank-card.top-1 {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.05);
+        }
+        .rank-card.top-2 {
+            border-color: #94a3b8;
+            background: rgba(148, 163, 184, 0.04);
+        }
+        .rank-card.top-3 {
+            border-color: #cd7f32;
+            background: rgba(205, 127, 50, 0.04);
+        }
+
+        .rank-thumb {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .rank-thumb-placeholder {
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(15, 23, 42, 0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .rank-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rank-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 3px;
+            flex-wrap: wrap;
+        }
+
+        .rank-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0b0e14;
+            padding: 1px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .rank-user {
+            color: #64748b;
+            font-size: 0.7rem;
+        }
+
+        .rank-time {
+            color: #64748b;
+            font-size: 0.7rem;
+        }
+
+        .rank-votes {
+            color: #94a3b8;
+            font-size: 0.7rem;
+        }
+
+        /* Vote Area */
+        .vote-area {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .vote-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: all 0.15s;
+        }
+        .vote-btn:hover {
+            border-color: #ec4899;
+            color: #ec4899;
+        }
+        .vote-btn.voted-up {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            color: #10b981;
+        }
+        .vote-btn.voted-down {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .vote-score {
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 24px;
+            text-align: center;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <button class="back-btn" onclick="history.back()">←</button>
+            <h1 id="headerTitle">Leaderboard</h1>
+        </div>
+
+        <!-- Category Header -->
+        <div class="category-header" id="categoryHeader">
+            <div class="loading">
+                <div class="spinner sm"></div>
+            </div>
+        </div>
+
+        <!-- Category Selector -->
+        <div class="category-selector hide-scrollbar" id="categorySelector">
+            <div style="color:#64748b;padding:8px;">Loading...</div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard-header">
+            <h2>🏆 Rankings</h2>
+            <span class="listing-count" id="listingCount"></span>
+        </div>
+
+        <div class="leaderboard" id="leaderboard">
+            <div class="loading">
+                <div class="spinner sm"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="feed.html">🏠<span>Feed</span></a>
+            <a href="search.html">🔍<span>Search</span></a>
+            <a href="create-post.html">➕<span>Post</span></a>
+            <a href="rankings.html">🏆<span>Rankings</span></a>
+            <a href="profile.html">👤<span>Profile</span></a>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CATEGORY PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let currentSlug = 'street-food';
+        let currentCategory = null;
+        let userVotes = {};
+        let isFollowingCat = false;
+        let allCategories = [];
+
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+
+            const slugParam = getUrlParam('slug');
+            if (slugParam) currentSlug = slugParam;
+
+            await loadCategories();
+            await loadCategoryData();
+            await loadLeaderboard();
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            allCategories = categories || [];
+            const selector = document.getElementById('categorySelector');
+            selector.innerHTML = allCategories.map(cat => `
+                <a href="?slug=${cat.slug}" class="cat-chip ${cat.slug === currentSlug ? 'active' : ''}" 
+                   onclick="event.preventDefault(); navigateTo('${cat.slug}')">
+                    ${cat.icon || ''} ${cat.name}
+                </a>
+            `).join('');
+        }
+
+        async function loadCategoryData() {
+            currentCategory = allCategories.find(c => c.slug === currentSlug);
+            if (!currentCategory) {
+                document.getElementById('categoryHeader').innerHTML = '<div class="empty-state"><p>Category not found</p></div>';
+                return;
+            }
+
+            document.getElementById('headerTitle').textContent = currentCategory.name;
+            document.title = `Ranka • ${currentCategory.name}`;
+
+            // Update OG tags
+            const ogTitle = document.querySelector('meta[property="og:title"]');
+            if (ogTitle) ogTitle.setAttribute('content', `Ranka — ${currentCategory.name} Rankings`);
+            const ogDesc = document.querySelector('meta[property="og:description"]');
+            if (ogDesc) ogDesc.setAttribute('content', `See the top ranked ${currentCategory.name.toLowerCase()} on Ranka. Voted by the community.`);
+
+            // Get listing count and follower count
+            const [listRes, followRes] = await Promise.all([
+                sb.from('listings').select('*', { count: 'exact', head: true }).eq('category_id', currentCategory.id),
+                sb.from('category_follows').select('*', { count: 'exact', head: true }).eq('category_id', currentCategory.id)
+            ]);
+            const listingCount = listRes.count || 0;
+            const followerCount = followRes.count || 0;
+
+            // Check if current user follows this category
+            if (currentUser) {
+                const { data: cf } = await sb
+                    .from('category_follows')
+                    .select('id')
+                    .eq('user_id', currentUser.id)
+                    .eq('category_id', currentCategory.id)
+                    .maybeSingle();
+                isFollowingCat = !!cf;
+            }
+
+            document.getElementById('categoryHeader').innerHTML = `
+                <div class="category-icon-large">${currentCategory.icon || '📂'}</div>
+                <div class="category-name-large">${esc(currentCategory.name)}</div>
+                ${currentCategory.description ? `<div class="category-desc">${esc(currentCategory.description)}</div>` : ''}
+                <div class="category-stats">
+                    <div class="cat-stat">
+                        <div class="cat-stat-value">${formatNum(listingCount)}</div>
+                        <div class="cat-stat-label">Listings</div>
+                    </div>
+                    <div class="cat-stat">
+                        <div class="cat-stat-value">${formatNum(followerCount)}</div>
+                        <div class="cat-stat-label">Followers</div>
+                    </div>
+                </div>
+                ${currentUser ? `
+                    <button class="follow-cat-btn ${isFollowingCat ? 'following' : ''}" id="followCatBtn" onclick="toggleFollowCategory()">
+                        ${isFollowingCat ? '✓ Following' : '+ Follow Category'}
+                    </button>
+                ` : ''}
+            `;
+        }
+
+        function navigateTo(slug) {
+            currentSlug = slug;
+            window.history.pushState({}, '', `?slug=${slug}`);
+            loadCategoryData();
+            loadCategories();
+            loadLeaderboard();
+        }
+
+        async function toggleFollowCategory() {
+            if (!currentUser) {
+                showToast('Login to follow');
+                return;
+            }
+
+            const btn = document.getElementById('followCatBtn');
+
+            if (isFollowingCat) {
+                await sb.from('category_follows').delete().eq('user_id', currentUser.id).eq('category_id', currentCategory.id);
+                isFollowingCat = false;
+                if (btn) {
+                    btn.textContent = '+ Follow Category';
+                    btn.className = 'follow-cat-btn';
+                }
+            } else {
+                await sb.from('category_follows').insert({ user_id: currentUser.id, category_id: currentCategory.id });
+                isFollowingCat = true;
+                if (btn) {
+                    btn.textContent = '✓ Following';
+                    btn.className = 'follow-cat-btn following';
+                }
+            }
+            showToast(isFollowingCat ? 'Following category!' : 'Unfollowed');
+            loadCategoryData(); // refresh follower count
+        }
+
+        async function loadLeaderboard() {
+            const board = document.getElementById('leaderboard');
+            board.innerHTML = '<div class="loading"><div class="spinner sm"></div></div>';
+
+            if (!currentCategory) {
+                board.innerHTML = '<div class="empty-state"><p>Select a category</p></div>';
+                return;
+            }
+
+            // Load user votes if logged in
+            if (currentUser) {
+                const { data: votes } = await sb
+                    .from('votes')
+                    .select('listing_id, vote_type')
+                    .eq('user_id', currentUser.id);
+                userVotes = {};
+                (votes || []).forEach(v => {
+                    userVotes[v.listing_id] = v.vote_type;
+                });
+            }
+
+            const { data: listings, error } = await sb
+                .from('listings')
+                .select(`id, title, image_url, images, created_at, submitted_by, profiles:submitted_by (username, display_name)`)
+                .eq('category_id', currentCategory.id)
+                .order('created_at', { ascending: false });
+
+            if (error || !listings || listings.length === 0) {
+                board.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>No listings in this category yet.</p>
+                        <a href="create-post.html" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#ec4899;color:white;border-radius:16px;text-decoration:none;font-weight:600;">+ Create Post</a>
+                    </div>`;
+                document.getElementById('listingCount').textContent = '0 listings';
+                return;
+            }
+
+            // Get scores for each listing
+            const withScores = await Promise.all(listings.map(async (l) => {
+                const scoreData = await getListingScore(l.id);
+                return { ...l, ...scoreData };
+            }));
+
+            // Sort by score
+            withScores.sort((a, b) => b.score - a.score);
+            document.getElementById('listingCount').textContent = `${withScores.length} listings`;
+
+            board.innerHTML = withScores.map((listing, index) => {
+                const rank = index + 1;
+                let topClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+                const img = listing.images?.[0] || listing.image_url || '';
+                const profile = listing.profiles || {};
+                const displayName = profile.display_name || profile.username || 'User';
+                const uv = userVotes[listing.id];
+                const scoreClass = listing.score > 0 ? 'score-pos' : listing.score < 0 ? 'score-neg' : 'score-zero';
+                const rankDisplay = rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : `#${rank}`;
+
+                return `
+                    <a href="listing.html?id=${listing.id}" class="rank-card ${topClass}">
+                        ${img
+                            ? `<img src="${img}" class="rank-thumb" alt="" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="rank-thumb-placeholder">📸</div>`}
+                        <div class="rank-info">
+                            <div class="rank-title">${esc(listing.title)}</div>
+                            <div class="rank-meta">
+                                ${rank <= 3 ? `<span class="rank-badge">${rankDisplay}</span>` : ''}
+                                <span class="rank-user">@${esc(displayName)}</span>
+                                <span class="rank-votes">▲${listing.upvotes} ▼${listing.downvotes}</span>
+                                <span class="rank-time">${timeAgo(listing.created_at)}</span>
+                            </div>
+                        </div>
+                        <div class="vote-area" onclick="event.preventDefault(); event.stopPropagation(); handleVote('${listing.id}', 'up')">
+                            <button class="vote-btn ${uv === 'up' ? 'voted-up' : ''}">▲</button>
+                            <span class="vote-score ${scoreClass}">${listing.score > 0 ? '+' : ''}${listing.score}</span>
+                        </div>
+                    </a>`;
+            }).join('');
+        }
+
+        async function handleVote(listingId, voteType) {
+            if (!currentUser) {
+                showToast('Login to vote');
+                return;
+            }
+
+            const currentVote = userVotes[listingId];
+            if (currentVote === voteType) {
+                await sb.from('votes').delete().eq('listing_id', listingId).eq('user_id', currentUser.id);
+                delete userVotes[listingId];
+            } else {
+                await sb.from('votes').upsert(
+                    { listing_id: listingId, user_id: currentUser.id, vote_type: voteType },
+                    { onConflict: 'listing_id, user_id' }
+                );
+                userVotes[listingId] = voteType;
+            }
+            // Refresh leaderboard to update scores
+            loadLeaderboard();
+        }
+
+        init();
+    </script>
+</body>
+</html>

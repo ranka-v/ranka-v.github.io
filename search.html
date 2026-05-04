@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Search</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+    <meta name="description" content="Search across all categories on Ranka. Find the best products, places, and services ranked by the community.">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Search">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Search across all categories.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug/search.html">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Search">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== SEARCH PAGE-SPECIFIC STYLES ========== */
+
+        /* Search Hero */
+        .search-hero {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+        .search-hero .icon {
+            font-size: 3.5rem;
+            margin-bottom: 16px;
+        }
+        .search-hero h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .search-hero p {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 24px;
+        }
+
+        /* Search Form */
+        .search-form {
+            margin-bottom: 32px;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 8px 8px 8px 16px;
+            transition: border-color 0.2s;
+        }
+        .search-input-wrapper:focus-within {
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+        }
+        .search-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.05rem;
+            font-family: inherit;
+            padding: 10px 0;
+        }
+        .search-input-wrapper input:focus {
+            outline: none;
+        }
+        .search-input-wrapper input::placeholder {
+            color: #64748b;
+        }
+        .search-input-wrapper button {
+            background: #ec4899;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .search-input-wrapper button:hover {
+            background: #db2777;
+        }
+
+        /* Section Card */
+        .section-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid #334155;
+            border-radius: 28px;
+            padding: 24px 20px;
+            margin-bottom: 20px;
+        }
+        .section-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            color: #fbbf24;
+        }
+
+        /* Popular Tags */
+        .popular-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .popular-tag {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .popular-tag:hover {
+            border-color: #ec4899;
+            color: #fff;
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .category-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #fff;
+        }
+        .category-card:hover {
+            border-color: #ec4899;
+            transform: translateY(-1px);
+        }
+        .category-card .cat-icon {
+            font-size: 1.6rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .category-card .cat-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .grid-span-2 {
+            grid-column: span 2;
+            text-align: center;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns" id="navActions">
+                <a href="submit.html" class="btn btn-primary btn-sm">+ Submit</a>
+                <button class="btn btn-sm" id="logoutBtn" style="display:none;" onclick="handleLogout()">Logout</button>
+                <a href="login.html" class="btn btn-sm" id="loginBtn">Login</a>
+            </div>
+        </nav>
+
+        <!-- Search Hero -->
+        <div class="search-hero">
+            <div class="icon">🔍</div>
+            <h1>Find the Best</h1>
+            <p>Search across all categories, products, places, and services.</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="search-form">
+            <form onsubmit="goToResults(event)">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="What are you looking for?" autocomplete="off" autofocus>
+                    <button type="submit">Search</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Popular Searches -->
+        <div class="section-card" id="popularSearchesSection">
+            <h3>🔥 Popular Searches</h3>
+            <div class="popular-tags" id="popularTags">
+                <div style="color:#64748b;font-size:0.9rem;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Browse by Category -->
+        <div class="section-card">
+            <h3>📂 Browse by Category</h3>
+            <div class="category-grid" id="categoryGrid">
+                <div class="grid-span-2" style="color:#64748b;font-size:0.9rem;">Loading categories...</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SEARCH PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+
+        async function init() {
+            await checkAuth();
+            await Promise.all([
+                loadPopularSearches(),
+                loadCategories()
+            ]);
+        }
+
+        async function checkAuth() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+            document.getElementById('logoutBtn').style.display = user ? 'inline-block' : 'none';
+            document.getElementById('loginBtn').style.display = user ? 'none' : 'inline-block';
+        }
+
+        async function loadPopularSearches() {
+            // Get top listings by vote count as "popular searches"
+            const { data: listings } = await sb
+                .from('listings')
+                .select('id, title, tags')
+                .limit(20);
+
+            if (!listings || listings.length === 0) {
+                document.getElementById('popularTags').innerHTML = `
+                    <span style="color:#64748b;">No listings yet. Be the first to submit!</span>
+                `;
+                return;
+            }
+
+            // Collect all tags with frequency
+            const tagCounts = {};
+            listings.forEach(listing => {
+                if (listing.tags && Array.isArray(listing.tags)) {
+                    listing.tags.forEach(tag => {
+                        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                    });
+                }
+            });
+
+            // Sort by frequency and take top 8
+            const sortedTags = Object.entries(tagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 8);
+
+            // Also add popular listing titles
+            const popularItems = listings.slice(0, 6).map(l => l.title);
+
+            // Combine and deduplicate
+            const allPopular = [...new Set([...popularItems, ...sortedTags.map(t => t[0])])].slice(0, 10);
+
+            document.getElementById('popularTags').innerHTML = allPopular.map(item => `
+                <a href="search-results.html?q=${encodeURIComponent(item)}" class="popular-tag">${esc(item)}</a>
+            `).join('');
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            if (!categories || categories.length === 0) {
+                document.getElementById('categoryGrid').innerHTML = `
+                    <span class="grid-span-2" style="color:#64748b;">No categories yet.</span>
+                `;
+                return;
+            }
+
+            document.getElementById('categoryGrid').innerHTML = categories.slice(0, 8).map(cat => `
+                <a href="category.html?slug=${cat.slug}" class="category-card">
+                    <span class="cat-icon">${cat.icon || '📂'}</span>
+                    <span class="cat-name">${esc(cat.name)}</span>
+                </a>
+            `).join('');
+        }
+
+        function goToResults(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+            window.location.href = `search-results.html?q=${encodeURIComponent(query)}`;
+        }
+
+        init();
+    </script>
+</body>
+</html>

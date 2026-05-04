@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • All Categories</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+    <meta name="description" content="Browse all categories on Ranka. Discover the best products, places, and services ranked by the community.">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — All Categories">
+    <meta property="og:description" content="Browse all categories on East Africa's community-driven ranking platform.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug/categories.html">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — All Categories">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== CATEGORIES PAGE-SPECIFIC STYLES ========== */
+
+        .cat-count-badge {
+            background: rgba(236, 72, 153, 0.15);
+            color: #fbb8d4;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Search */
+        .search-box {
+            padding: 8px 16px 4px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.6);
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #ec4899;
+        }
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 12px 16px 80px;
+        }
+
+        .category-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 18px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-card:hover {
+            border-color: #ec4899;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.08);
+        }
+
+        .category-card .cat-icon {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .category-card .cat-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .category-card .cat-desc {
+            color: #64748b;
+            font-size: 0.75rem;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .category-card .cat-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        .category-card .cat-listing-count {
+            background: rgba(236, 72, 153, 0.12);
+            color: #fbb8d4;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .category-card .cat-follower-count {
+            color: #64748b;
+        }
+
+        .category-card .top-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0b0e14;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 0.6rem;
+            font-weight: 800;
+        }
+
+        .grid-span-2 {
+            grid-column: span 2;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <button class="back-btn" onclick="history.back()">←</button>
+            <h1>📂 Categories <span class="cat-count-badge" id="catCount">0</span></h1>
+        </div>
+
+        <!-- Search -->
+        <div class="search-box">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search categories..." oninput="filterCategories()">
+        </div>
+
+        <!-- Category Grid -->
+        <div class="category-grid" id="categoryGrid">
+            <div class="loading grid-span-2">
+                <div class="spinner sm"></div>
+                <p>Loading categories...</p>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="feed.html">🏠<span>Feed</span></a>
+            <a href="search.html">🔍<span>Search</span></a>
+            <a href="create-post.html">➕<span>Post</span></a>
+            <a href="rankings.html">🏆<span>Rankings</span></a>
+            <a href="profile.html">👤<span>Profile</span></a>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CATEGORIES PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let allCategories = [];
+        let categoryData = [];
+
+        async function init() {
+            await loadCategories();
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            allCategories = categories || [];
+            document.getElementById('catCount').textContent = allCategories.length;
+
+            if (!allCategories.length) {
+                document.getElementById('categoryGrid').innerHTML = '<div class="empty-state grid-span-2"><div class="icon">📂</div><p>No categories yet.</p></div>';
+                return;
+            }
+
+            // Get listing counts and follower counts for each category
+            categoryData = await Promise.all(allCategories.map(async (cat) => {
+                const [listRes, followRes] = await Promise.all([
+                    sb.from('listings').select('*', { count: 'exact', head: true }).eq('category_id', cat.id),
+                    sb.from('category_follows').select('*', { count: 'exact', head: true }).eq('category_id', cat.id)
+                ]);
+                return {
+                    ...cat,
+                    listingCount: listRes.count || 0,
+                    followerCount: followRes.count || 0
+                };
+            }));
+
+            renderCategories(categoryData);
+        }
+
+        function renderCategories(categories) {
+            const grid = document.getElementById('categoryGrid');
+
+            if (!categories.length) {
+                grid.innerHTML = '<div class="empty-state grid-span-2"><div class="icon">🔍</div><p>No categories match your search.</p></div>';
+                return;
+            }
+
+            // Sort by listing count for "top" badge
+            const sorted = [...categories].sort((a, b) => b.listingCount - a.listingCount);
+            const top3Ids = sorted.slice(0, 3).map(c => c.id);
+
+            grid.innerHTML = categories.map((cat) => {
+                const isTop3 = top3Ids.includes(cat.id);
+                const rank = top3Ids.indexOf(cat.id) + 1;
+
+                return `
+                    <a href="category.html?slug=${cat.slug}" class="category-card">
+                        ${isTop3 ? `<span class="top-badge">🏆 #${rank}</span>` : ''}
+                        <span class="cat-icon">${cat.icon || '📂'}</span>
+                        <div class="cat-name">${esc(cat.name)}</div>
+                        ${cat.description ? `<div class="cat-desc">${esc(cat.description)}</div>` : ''}
+                        <div class="cat-meta">
+                            <span class="cat-listing-count">${formatNum(cat.listingCount)} listings</span>
+                            ${cat.followerCount > 0 ? `<span class="cat-follower-count">${formatNum(cat.followerCount)} followers</span>` : ''}
+                        </div>
+                    </a>`;
+            }).join('');
+        }
+
+        function filterCategories() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderCategories(categoryData);
+                return;
+            }
+            const filtered = categoryData.filter(c =>
+                c.name.toLowerCase().includes(query) ||
+                (c.description || '').toLowerCase().includes(query)
+            );
+            renderCategories(filtered);
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Search Results</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== SEARCH RESULTS-SPECIFIC STYLES ========== */
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #fff;
+        }
+
+        /* Search Bar Compact */
+        .search-bar-compact {
+            display: flex;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 18px;
+            padding: 6px 6px 6px 14px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        .search-bar-compact:focus-within {
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
+        }
+        .search-bar-compact input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            padding: 8px 0;
+        }
+        .search-bar-compact input:focus {
+            outline: none;
+        }
+        .search-bar-compact input::placeholder {
+            color: #64748b;
+        }
+        .search-bar-compact button {
+            background: #ec4899;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        /* Filters */
+        .filters-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+        }
+        .filters-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Results Info */
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .results-count {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        .results-count strong {
+            color: #fbbf24;
+        }
+
+        .sort-select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            padding: 8px 28px 8px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-family: inherit;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M5 7L1 3h8z' fill='%2394a3b8'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        /* Results List */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .result-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            text-decoration: none;
+            color: #fff;
+        }
+        .result-card:hover {
+            border-color: #334155;
+        }
+
+        .result-icon {
+            font-size: 1.8rem;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-description {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .result-location {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .result-score {
+            font-weight: 700;
+            font-size: 0.9rem;
+            min-width: 32px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .highlight-match {
+            background: rgba(251, 191, 36, 0.25);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns" id="navActions">
+                <a href="submit.html" class="btn btn-primary btn-sm">+ Submit</a>
+                <button class="btn btn-sm" id="logoutBtn" style="display:none;" onclick="handleLogout()">Logout</button>
+                <a href="login.html" class="btn btn-sm" id="loginBtn">Login</a>
+            </div>
+        </nav>
+
+        <!-- Back to search -->
+        <a href="search.html" class="back-link">← Back to search</a>
+
+        <!-- Compact Search Bar -->
+        <div class="search-bar-compact">
+            <input type="text" id="searchInput" placeholder="Search listings..." autocomplete="off">
+            <button onclick="doSearch()">Search</button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-row hide-scrollbar" id="filtersRow">
+            <button class="filter-chip active" data-category="" onclick="setFilter(this, '')">All</button>
+        </div>
+
+        <!-- Results Info -->
+        <div class="results-info" id="resultsInfo" style="display:none;">
+            <span class="results-count" id="resultsCount"></span>
+            <select class="sort-select" id="sortSelect" onchange="renderResults()">
+                <option value="relevance">Most Relevant</option>
+                <option value="score">Highest Rated</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+            </select>
+        </div>
+
+        <!-- Results -->
+        <div class="results-list" id="resultsList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Searching...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SEARCH RESULTS PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let allCategories = [];
+        let currentFilter = '';
+        let searchResults = [];
+
+        async function init() {
+            await checkAuth();
+            await loadCategories();
+
+            const queryParam = getUrlParam('q');
+
+            if (queryParam) {
+                document.getElementById('searchInput').value = queryParam;
+                await doSearch();
+            } else {
+                document.getElementById('resultsList').innerHTML = `
+                    <div style="text-align:center;padding:40px 20px;color:#64748b;">
+                        <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+                        <p>Enter a search term to find listings.</p>
+                        <a href="search.html" class="btn btn-primary" style="margin-top:12px;">Go to Search</a>
+                    </div>
+                `;
+                document.getElementById('resultsInfo').style.display = 'none';
+            }
+
+            document.getElementById('searchInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') doSearch();
+            });
+        }
+
+        async function checkAuth() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+            document.getElementById('logoutBtn').style.display = user ? 'inline-block' : 'none';
+            document.getElementById('loginBtn').style.display = user ? 'none' : 'inline-block';
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            allCategories = categories || [];
+
+            const filtersRow = document.getElementById('filtersRow');
+            const chips = allCategories.map(cat => `
+                <button class="filter-chip" data-category="${cat.slug}" onclick="setFilter(this, '${cat.slug}')">
+                    ${cat.icon || ''} ${cat.name}
+                </button>
+            `).join('');
+
+            filtersRow.innerHTML = `
+                <button class="filter-chip active" data-category="" onclick="setFilter(this, '')">All</button>
+                ${chips}
+            `;
+        }
+
+        function setFilter(button, categorySlug) {
+            document.querySelectorAll('.filter-chip').forEach(chip => chip.classList.remove('active'));
+            button.classList.add('active');
+            currentFilter = categorySlug;
+            renderResults();
+        }
+
+        async function doSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            // Update URL
+            window.history.pushState({}, '', `?q=${encodeURIComponent(query)}`);
+
+            document.getElementById('resultsList').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching for "${esc(query)}"...</p>
+                </div>
+            `;
+            document.getElementById('resultsInfo').style.display = 'none';
+
+            // Build query with ILIKE for partial matches
+            const searchTerm = `%${query}%`;
+            const { data: listings, error } = await sb
+                .from('listings')
+                .select(`
+                    id, title, description, location, tags, created_at, category_id,
+                    categories:category_id (name, slug, icon)
+                `)
+                .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                document.getElementById('resultsList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚠️</div>
+                        <h3>Search Error</h3>
+                        <p>Something went wrong. Please try again.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Store raw results
+            searchResults = listings || [];
+            await renderResults();
+        }
+
+        async function renderResults() {
+            const query = document.getElementById('searchInput').value.trim();
+            const resultsList = document.getElementById('resultsList');
+            const resultsInfo = document.getElementById('resultsInfo');
+
+            // Filter by category
+            let filtered = [...searchResults];
+            if (currentFilter) {
+                const cat = allCategories.find(c => c.slug === currentFilter);
+                if (cat) {
+                    filtered = filtered.filter(l => l.category_id === cat.id);
+                }
+            }
+
+            // Client-side tag matching
+            if (query) {
+                filtered = filtered.filter(listing => {
+                    const titleMatch = listing.title.toLowerCase().includes(query.toLowerCase());
+                    const descMatch = listing.description && listing.description.toLowerCase().includes(query.toLowerCase());
+                    const tagMatch = listing.tags && Array.isArray(listing.tags) &&
+                        listing.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()));
+                    return titleMatch || descMatch || tagMatch;
+                });
+            }
+
+            // Get vote scores for each result
+            const withScores = await Promise.all(filtered.map(async (listing) => {
+                const scoreData = await getListingScore(listing.id);
+                return { ...listing, ...scoreData };
+            }));
+
+            // Sort
+            const sortBy = document.getElementById('sortSelect').value;
+            switch (sortBy) {
+                case 'score':
+                    withScores.sort((a, b) => b.score - a.score);
+                    break;
+                case 'newest':
+                    withScores.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    break;
+                case 'oldest':
+                    withScores.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    break;
+                case 'relevance':
+                default:
+                    if (query) {
+                        withScores.sort((a, b) => {
+                            const aStarts = a.title.toLowerCase().startsWith(query.toLowerCase()) ? 2 : 0;
+                            const bStarts = b.title.toLowerCase().startsWith(query.toLowerCase()) ? 2 : 0;
+                            const aContains = a.title.toLowerCase().includes(query.toLowerCase()) ? 1 : 0;
+                            const bContains = b.title.toLowerCase().includes(query.toLowerCase()) ? 1 : 0;
+                            return (bStarts + bContains) - (aStarts + aContains) || b.score - a.score;
+                        });
+                    } else {
+                        withScores.sort((a, b) => b.score - a.score);
+                    }
+                    break;
+            }
+
+            // Update results info
+            resultsInfo.style.display = 'flex';
+            document.getElementById('resultsCount').innerHTML = `
+                <strong>${withScores.length}</strong> result${withScores.length !== 1 ? 's' : ''}
+                ${query ? `for "<strong>${esc(query)}</strong>"` : ''}
+                ${currentFilter ? `in ${allCategories.find(c => c.slug === currentFilter)?.name || currentFilter}` : ''}
+            `;
+
+            // Render results
+            if (withScores.length === 0) {
+                resultsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">😕</div>
+                        <h3>No results found</h3>
+                        <p>Try a different search term or browse all categories.</p>
+                        <a href="search.html" class="btn" style="margin-right:8px;">New Search</a>
+                        <a href="category.html?slug=street-food" class="btn btn-primary">Browse Categories</a>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsList.innerHTML = withScores.map(listing => {
+                const cat = listing.categories;
+                const scoreClass = listing.score > 0 ? 'score-pos' : listing.score < 0 ? 'score-neg' : 'score-zero';
+
+                // Highlight matching text in title
+                let displayTitle = esc(listing.title);
+                if (query) {
+                    const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+                    displayTitle = esc(listing.title).replace(regex, '<span class="highlight-match">$1</span>');
+                }
+
+                // Truncate description
+                let displayDesc = '';
+                if (listing.description) {
+                    displayDesc = listing.description.length > 80
+                        ? esc(listing.description.substring(0, 80)) + '...'
+                        : esc(listing.description);
+                }
+
+                return `
+                    <a href="listing.html?id=${listing.id}" class="result-card">
+                        <div class="result-icon">${cat?.icon || '📂'}</div>
+                        <div class="result-info">
+                            <div class="result-title">${displayTitle}</div>
+                            ${displayDesc ? `<div class="result-description">${displayDesc}</div>` : ''}
+                            <div class="result-meta">
+                                <span class="category-tag">${cat?.name || 'Unknown'}</span>
+                                ${listing.location ? `<span class="result-location">📍 ${esc(listing.location)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="result-score ${scoreClass}">
+                            ${listing.score > 0 ? '+' : ''}${listing.score}
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        init();
+    </script>
+</body>
+</html>

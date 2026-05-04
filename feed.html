@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Feed</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== FEED-SPECIFIC STYLES ========== */
+
+        /* Header */
+        .top-nav.feed-nav {
+            justify-content: space-between;
+        }
+
+        .logo.sm {
+            font-size: 1.3rem;
+        }
+        .logo.sm .crescent-ball {
+            width: 32px;
+            height: 32px;
+        }
+        .logo.sm .crescent-ball::after {
+            width: 20px;
+            height: 20px;
+            top: 4px;
+            right: 4px;
+        }
+
+        /* Category Circles */
+        .category-circles {
+            padding: 10px 6px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .category-circles::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-circle-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+            cursor: pointer;
+            text-decoration: none;
+            min-width: 58px;
+        }
+        .cat-circle-item:first-child {
+            margin-left: 10px;
+        }
+        .cat-circle-item:last-child {
+            margin-right: 10px;
+        }
+
+        .cat-circle-ring {
+            width: 54px;
+            height: 54px;
+            border-radius: 27px;
+            padding: 2px;
+            background: linear-gradient(135deg, #ec4899, #fbbf24, #10b981);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cat-circle-ring.all {
+            background: linear-gradient(135deg, #ec4899, #fbbf24);
+        }
+
+        .cat-circle-inner {
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+            background: #1a2332;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            border: 2px solid #0b0e14;
+        }
+
+        .cat-circle-label {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            max-width: 58px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Feed Post */
+        .feed-post {
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px 8px;
+        }
+
+        .post-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .post-header-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .post-username {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+            text-decoration: none;
+        }
+        .post-username:hover {
+            color: #ec4899;
+        }
+
+        .post-time {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .post-location {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Post Body */
+        .post-body {
+            padding: 0 16px 10px;
+        }
+
+        .post-title-display {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 2px;
+            line-height: 1.3;
+        }
+
+        .post-caption-display {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Image Carousel (matches listing.html) */
+        .post-image-container {
+            width: 100%;
+            background: #0f172a;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .post-image-container.single-image img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .image-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .image-carousel img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            display: block;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            max-height: 300px;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.06), rgba(15, 23, 42, 0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .carousel-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            z-index: 2;
+        }
+
+        .multi-image-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            transition: all 0.2s;
+        }
+
+        .carousel-dot.active {
+            background: #ec4899;
+            width: 16px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+        }
+
+        .vote-group {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 18px;
+            padding: 1px;
+        }
+
+        .vote-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 17px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .vote-btn:hover {
+            color: #fff;
+        }
+        .vote-btn.voted-up {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .vote-btn.voted-down {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .vote-count {
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 30px;
+            text-align: center;
+        }
+        .vote-count.pos {
+            color: #10b981;
+        }
+        .vote-count.neg {
+            color: #ef4444;
+        }
+        .vote-count.zero {
+            color: #94a3b8;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 14px;
+            transition: all 0.15s;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .action-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .action-btn .icon {
+            font-size: 1.1rem;
+        }
+
+        .action-spacer {
+            flex: 1;
+        }
+
+        /* Banner Ad */
+        .banner-ad {
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 16px 14px;
+            background: rgba(30, 41, 59, 0.2);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .banner-ad-label {
+            display: inline-block;
+            background: rgba(251, 191, 36, 0.12);
+            color: #fbbf24;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .banner-ad-placeholder {
+            width: 100%;
+            min-height: 90px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px dashed #334155;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        /* Empty Feed */
+        .empty-feed {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+        .empty-feed .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        /* Share Modal */
+        .share-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .share-modal-overlay.active {
+            display: flex;
+        }
+
+        .share-modal {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 16px 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .share-modal h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            text-align: center;
+            color: #fbbf24;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: #cbd5e1;
+            font-size: 0.75rem;
+        }
+        .share-option:hover {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.08);
+        }
+        .share-option .share-icon {
+            font-size: 1.5rem;
+        }
+
+        .copy-link-row {
+            display: flex;
+            gap: 8px;
+        }
+        .copy-link-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.6);
+            color: #fff;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+        .copy-link-row button {
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: none;
+            background: #ec4899;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .share-close {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Nav -->
+        <div class="top-nav feed-nav">
+            <a href="index.html" class="logo sm">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="header-icons">
+                <a href="notifications.html" class="header-icon" style="position:relative;">
+                    🔔
+                    <span class="notif-badge" id="notifBadge"></span>
+                </a>
+                <a href="profile.html" class="header-icon">👤</a>
+            </div>
+        </div>
+
+        <!-- Category Circles -->
+        <div class="category-circles hide-scrollbar" id="categoryCircles">
+            <div style="color:#64748b;padding:10px;">Loading...</div>
+        </div>
+
+        <!-- Feed -->
+        <div id="feedContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading posts...</p>
+            </div>
+        </div>
+
+        <div class="bottom-spacer"></div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="feed.html" class="active">🏠<span>Feed</span></a>
+            <a href="search.html">🔍<span>Search</span></a>
+            <a href="create-post.html">➕<span>Post</span></a>
+            <a href="explore.html">🌍<span>Explore</span></a>
+            <a href="profile.html">👤<span>Profile</span></a>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Share Modal -->
+    <div class="share-modal-overlay" id="shareModal">
+        <div class="share-modal">
+            <h3>↗️ Share</h3>
+            <div class="share-options">
+                <a class="share-option" id="shareTwitter" target="_blank" rel="noopener">
+                    <span class="share-icon">𝕏</span> Twitter
+                </a>
+                <a class="share-option" id="shareFacebook" target="_blank" rel="noopener">
+                    <span class="share-icon">📘</span> Facebook
+                </a>
+                <a class="share-option" id="shareWhatsApp" target="_blank" rel="noopener">
+                    <span class="share-icon">💬</span> WhatsApp
+                </a>
+                <a class="share-option" id="shareLinkedIn" target="_blank" rel="noopener">
+                    <span class="share-icon">💼</span> LinkedIn
+                </a>
+            </div>
+            <div class="copy-link-row">
+                <input type="text" id="shareUrlInput" readonly>
+                <button onclick="copyShareLink()">Copy</button>
+            </div>
+            <button class="share-close" onclick="closeShareModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // FEED PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let userVotes = {};
+        let page = 0;
+        const PAGE_SIZE = 5;
+        let isLoading = false;
+        let hasMore = true;
+        let currentShareId = null;
+        let currentShareTitle = '';
+
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) {
+                window.location.href = 'login.html?redirect=feed.html';
+                return;
+            }
+            currentUser = user;
+            await loadUserVotes();
+            await loadCategoryCircles();
+            await loadFeed();
+            await checkNotifications();
+        }
+
+        async function loadUserVotes() {
+            const { data: votes } = await sb
+                .from('votes')
+                .select('listing_id, vote_type')
+                .eq('user_id', currentUser.id);
+            userVotes = {};
+            (votes || []).forEach(v => {
+                userVotes[v.listing_id] = v.vote_type;
+            });
+        }
+
+        async function checkNotifications() {
+            const { count } = await sb
+                .from('notifications')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', currentUser.id)
+                .eq('read', false);
+            const badge = document.getElementById('notifBadge');
+            if (count > 0) {
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.classList.add('show');
+            }
+        }
+
+        async function loadCategoryCircles() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+            const container = document.getElementById('categoryCircles');
+            if (!categories?.length) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const topCategories = categories.slice(0, 10);
+            container.innerHTML = `
+                <a href="feed.html" class="cat-circle-item">
+                    <div class="cat-circle-ring all">
+                        <div class="cat-circle-inner">🔥</div>
+                    </div>
+                    <span class="cat-circle-label">All</span>
+                </a>
+                ${topCategories.map(c => `
+                    <a href="category.html?slug=${c.slug}" class="cat-circle-item">
+                        <div class="cat-circle-ring">
+                            <div class="cat-circle-inner">${c.icon || '📂'}</div>
+                        </div>
+                        <span class="cat-circle-label">${esc(c.name)}</span>
+                    </a>
+                `).join('')}
+                <a href="categories.html" class="cat-circle-item">
+                    <div class="cat-circle-ring" style="background:#334155;">
+                        <div class="cat-circle-inner" style="font-size:1.8rem;">+</div>
+                    </div>
+                    <span class="cat-circle-label">More</span>
+                </a>
+            `;
+        }
+
+        function getRankingCache(categoryId) {
+            const key = `ranking_${categoryId}`;
+            const cached = localStorage.getItem(key);
+            if (cached) {
+                try {
+                    const { data, ts } = JSON.parse(cached);
+                    if (Date.now() - ts < 300000) return data; // 5 min cache
+                } catch (e) { /* ignore */ }
+            }
+            return null;
+        }
+
+        function setRankingCache(categoryId, data) {
+            try {
+                localStorage.setItem(`ranking_${categoryId}`, JSON.stringify({ data, ts: Date.now() }));
+            } catch (e) { /* ignore */ }
+        }
+
+        async function loadFeed(reset = false) {
+            if (isLoading) return;
+            isLoading = true;
+
+            if (reset) {
+                page = 0;
+                hasMore = true;
+                document.getElementById('feedContainer').innerHTML = '';
+            }
+
+            const from = page * PAGE_SIZE;
+            const to = from + PAGE_SIZE - 1;
+
+            const { data: listings, error } = await sb
+                .from('listings')
+                .select(`id, title, caption, description, image_url, images, location, category_id, submitted_by, created_at, categories:category_id (name, slug, icon), profiles:submitted_by (id, username, display_name, avatar_url)`)
+                .order('created_at', { ascending: false })
+                .range(from, to);
+
+            if (error || !listings?.length) {
+                if (page === 0) {
+                    document.getElementById('feedContainer').innerHTML = `
+                        <div class="empty-feed">
+                            <div class="icon">📸</div>
+                            <h3>No posts yet</h3>
+                            <p>Be the first to rank something!</p>
+                            <a href="create-post.html" style="margin-top:16px;display:inline-block;padding:12px 24px;background:#ec4899;color:white;border-radius:24px;text-decoration:none;font-weight:600;">Create Post</a>
+                        </div>`;
+                }
+                hasMore = false;
+                isLoading = false;
+                return;
+            }
+
+            if (listings.length < PAGE_SIZE) hasMore = false;
+            page++;
+
+            const listingIds = listings.map(l => l.id);
+
+            const [{ data: allVotes }, { data: allComments }] = await Promise.all([
+                sb.from('votes').select('listing_id, vote_type').in('listing_id', listingIds),
+                sb.from('comments').select('listing_id').in('listing_id', listingIds)
+            ]);
+
+            const voteMap = {};
+            (allVotes || []).forEach(v => {
+                if (!voteMap[v.listing_id]) voteMap[v.listing_id] = { up: 0, down: 0 };
+                if (v.vote_type === 'up') voteMap[v.listing_id].up++;
+                else voteMap[v.listing_id].down++;
+            });
+
+            const commentMap = {};
+            (allComments || []).forEach(c => {
+                commentMap[c.listing_id] = (commentMap[c.listing_id] || 0) + 1;
+            });
+
+            const enriched = await Promise.all(listings.map(async (listing) => {
+                const votes = voteMap[listing.id] || { up: 0, down: 0 };
+                const score = votes.up - votes.down;
+                const commentCount = commentMap[listing.id] || 0;
+
+                let ranking = null;
+                let scores = getRankingCache(listing.category_id);
+                if (!scores) {
+                    const { data: catListings } = await sb
+                        .from('listings')
+                        .select('id')
+                        .eq('category_id', listing.category_id);
+                    if (catListings) {
+                        const catIds = catListings.map(l => l.id);
+                        const { data: catVotes } = await sb
+                            .from('votes')
+                            .select('listing_id, vote_type')
+                            .in('listing_id', catIds);
+                        const catVoteMap = {};
+                        (catVotes || []).forEach(v => {
+                            if (!catVoteMap[v.listing_id]) catVoteMap[v.listing_id] = { up: 0, down: 0 };
+                            if (v.vote_type === 'up') catVoteMap[v.listing_id].up++;
+                            else catVoteMap[v.listing_id].down++;
+                        });
+                        scores = catListings.map(l => ({
+                            id: l.id,
+                            score: (catVoteMap[l.id]?.up || 0) - (catVoteMap[l.id]?.down || 0)
+                        }));
+                        scores.sort((a, b) => b.score - a.score);
+                        setRankingCache(listing.category_id, scores);
+                    }
+                }
+                if (scores) {
+                    const rank = scores.findIndex(s => s.id == listing.id) + 1;
+                    if (rank > 0 && rank <= 10) {
+                        ranking = { rank, categoryName: listing.categories?.name };
+                    }
+                }
+
+                return {
+                    ...listing,
+                    upvotes: votes.up,
+                    downvotes: votes.down,
+                    score,
+                    commentCount,
+                    ranking
+                };
+            }));
+
+            // Insert banner ads every 3 posts
+            const withAds = [];
+            enriched.forEach((post, i) => {
+                withAds.push(post);
+                if ((i + 1) % 3 === 0 && i < enriched.length - 1) {
+                    withAds.push({ _isBannerAd: true });
+                }
+            });
+
+            renderPosts(withAds, reset);
+            isLoading = false;
+        }
+
+        function renderImageCarousel(post) {
+            const images = post.images?.length ? post.images : (post.image_url ? [post.image_url] : []);
+            
+            if (images.length === 0) {
+                return `<div class="image-placeholder">📸</div>`;
+            }
+
+            if (images.length === 1) {
+                return `
+                    <div class="post-image-container single-image" onclick="window.location.href='listing.html?id=${post.id}'">
+                        <img src="${images[0]}" alt="${esc(post.title)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=image-placeholder>📸</div>'">
+                    </div>`;
+            }
+
+            // Multiple images — carousel
+            const slides = images.map((img, i) => 
+                `<img src="${img}" alt="Image ${i + 1}" loading="lazy" onerror="this.style.display='none'">`
+            ).join('');
+
+            const dots = images.map((_, i) => 
+                `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`
+            ).join('');
+
+            const postId = post.id;
+
+            return `
+                <div class="post-image-container" onclick="window.location.href='listing.html?id=${postId}'">
+                    <div class="image-carousel" id="carousel_${postId}" onscroll="updateFeedCarousel('${postId}', ${images.length})">
+                        ${slides}
+                    </div>
+                    <div class="carousel-counter" id="counter_${postId}">1/${images.length}</div>
+                    <div class="carousel-dots" id="dots_${postId}">${dots}</div>
+                    <div class="multi-image-badge">📷 ${images.length}</div>
+                </div>`;
+        }
+
+        function updateFeedCarousel(postId, total) {
+            const carousel = document.getElementById(`carousel_${postId}`);
+            if (!carousel) return;
+            const slideWidth = carousel.offsetWidth;
+            const index = Math.round(carousel.scrollLeft / slideWidth);
+            
+            // Update counter
+            const counter = document.getElementById(`counter_${postId}`);
+            if (counter) counter.textContent = `${index + 1}/${total}`;
+            
+            // Update dots
+            const dotsContainer = document.getElementById(`dots_${postId}`);
+            if (dotsContainer) {
+                dotsContainer.querySelectorAll('.carousel-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i === index);
+                });
+            }
+        }
+
+        function renderPosts(posts, reset) {
+            const container = document.getElementById('feedContainer');
+            if (reset) container.innerHTML = '';
+
+            const html = posts.map(post => {
+                if (post._isBannerAd) {
+                    return `
+                        <div class="banner-ad">
+                            <div class="banner-ad-label">Sponsored</div>
+                            <div class="banner-ad-placeholder">
+                                <!-- Monetag Banner Ad -->
+                            </div>
+                        </div>`;
+                }
+
+                const profile = post.profiles || {};
+                const cat = post.categories || {};
+                const displayName = profile.display_name || profile.username || 'User';
+                const caption = post.caption || post.description || '';
+                const score = post.score;
+                const scoreClass = score > 0 ? 'pos' : score < 0 ? 'neg' : 'zero';
+                const uv = userVotes[post.id];
+
+                return `
+                    <div class="feed-post" id="post_${post.id}">
+                        <div class="post-header">
+                            <a href="profile.html?username=${profile.username || ''}" class="avatar">
+                                ${profile.avatar_url ? `<img src="${profile.avatar_url}" alt="">` : displayName.charAt(0).toUpperCase()}
+                            </a>
+                            <div class="post-header-info">
+                                <div class="post-header-top">
+                                    <a href="profile.html?username=${profile.username || ''}" class="post-username">${esc(displayName)}</a>
+                                    <span class="post-time">· ${timeAgo(post.created_at)}</span>
+                                    ${post.ranking ? `<span class="ranking-badge">🏆 #${post.ranking.rank} in ${esc(post.ranking.categoryName || '')}</span>` : ''}
+                                </div>
+                                ${post.location ? `<div class="post-location">📍 ${esc(post.location)}</div>` : ''}
+                            </div>
+                            <a href="category.html?slug=${cat.slug || ''}" class="category-tag">${cat.icon || ''} ${cat.name || ''}</a>
+                        </div>
+                        <div class="post-body">
+                            <div class="post-title-display">${esc(post.title)}</div>
+                            ${caption ? `<div class="post-caption-display">${esc(caption)}</div>` : ''}
+                        </div>
+                        ${renderImageCarousel(post)}
+                        <div class="action-bar">
+                            <div class="vote-group">
+                                <button class="vote-btn ${uv === 'up' ? 'voted-up' : ''}" onclick="handleVote('${post.id}', 'up')">▲</button>
+                                <span class="vote-count ${scoreClass}" id="score_${post.id}">${score > 0 ? '+' : ''}${score}</span>
+                                <button class="vote-btn ${uv === 'down' ? 'voted-down' : ''}" onclick="handleVote('${post.id}', 'down')">▼</button>
+                            </div>
+                            <a href="listing.html?id=${post.id}" class="action-btn">
+                                <span class="icon">💬</span> ${post.commentCount || 0}
+                            </a>
+                            <button class="action-btn" onclick="openShareModal('${post.id}', '${esc(post.title).replace(/'/g, "\\'")}')">
+                                <span class="icon">↗️</span> Share
+                            </button>
+                            <div class="action-spacer"></div>
+                            <a href="chat.html?listing=${post.id}" class="action-btn">
+                                <span class="icon">💭</span> Chat
+                            </a>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            if (reset) {
+                container.innerHTML = html;
+            } else {
+                container.insertAdjacentHTML('beforeend', html);
+            }
+        }
+
+        async function handleVote(listingId, voteType) {
+            if (!currentUser) {
+                showToast('Login to vote');
+                return;
+            }
+
+            const currentVote = userVotes[listingId];
+            if (currentVote === voteType) {
+                await sb.from('votes').delete().eq('listing_id', listingId).eq('user_id', currentUser.id);
+                delete userVotes[listingId];
+            } else {
+                await sb.from('votes').upsert(
+                    { listing_id: listingId, user_id: currentUser.id, vote_type: voteType },
+                    { onConflict: 'listing_id, user_id' }
+                );
+                userVotes[listingId] = voteType;
+            }
+
+            const [upRes, downRes] = await Promise.all([
+                sb.from('votes').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).eq('vote_type', 'up'),
+                sb.from('votes').select('*', { count: 'exact', head: true }).eq('listing_id', listingId).eq('vote_type', 'down')
+            ]);
+
+            const score = (upRes.count || 0) - (downRes.count || 0);
+            const uv = userVotes[listingId];
+
+            // Update score display
+            const scoreEl = document.getElementById(`score_${listingId}`);
+            if (scoreEl) {
+                scoreEl.textContent = `${score > 0 ? '+' : ''}${score}`;
+                scoreEl.className = `vote-count ${score > 0 ? 'pos' : score < 0 ? 'neg' : 'zero'}`;
+            }
+
+            // Update vote buttons
+            const postEl = document.getElementById(`post_${listingId}`);
+            if (postEl) {
+                const upBtn = postEl.querySelector('.vote-btn:first-child');
+                const downBtn = postEl.querySelector('.vote-btn:last-child');
+                if (upBtn) upBtn.className = `vote-btn ${uv === 'up' ? 'voted-up' : ''}`;
+                if (downBtn) downBtn.className = `vote-btn ${uv === 'down' ? 'voted-down' : ''}`;
+            }
+        }
+
+        // ============ SHARE MODAL ============
+        function openShareModal(id, title) {
+            currentShareId = id;
+            currentShareTitle = title;
+            const url = `${window.location.origin}/listing.html?id=${id}`;
+
+            // Try native share on mobile
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => {});
+                return;
+            }
+
+            // Desktop: show custom modal
+            const modal = document.getElementById('shareModal');
+            document.getElementById('shareUrlInput').value = url;
+            document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+            document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            document.getElementById('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`;
+            document.getElementById('shareLinkedIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            modal.classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareUrlInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('Link copied!');
+        }
+
+        // Close modal on overlay click
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'shareModal') closeShareModal();
+        });
+
+        // ============ INFINITE SCROLL ============
+        window.addEventListener('scroll', () => {
+            if (isLoading || !hasMore) return;
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight > scrollHeight - 600) {
+                loadFeed();
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

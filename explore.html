@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Explore</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== EXPLORE-SPECIFIC STYLES ========== */
+
+        /* Search in nav */
+        .search-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 8px 14px;
+        }
+        .search-box input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .search-box input:focus {
+            outline: none;
+        }
+        .search-box input::placeholder {
+            color: #64748b;
+        }
+        .search-icon {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Sections */
+        .section {
+            padding: 20px 16px;
+        }
+
+        /* Category Pills */
+        .category-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-pill {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .cat-pill:hover {
+            border-color: #ec4899;
+            color: #fff;
+            background: rgba(236, 72, 153, 0.1);
+        }
+
+        /* Trending Grid */
+        .trending-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 3px;
+        }
+
+        .trending-item {
+            aspect-ratio: 1;
+            background: rgba(15, 23, 42, 0.6);
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        .trending-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        .trending-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .trending-item .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+            padding: 8px 6px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .trending-item:hover .overlay {
+            opacity: 1;
+        }
+
+        .trending-item .score {
+            color: #10b981;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .trending-item .title {
+            color: #fff;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Suggested Users */
+        .user-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #fff;
+            text-decoration: none;
+        }
+        .user-name:hover {
+            color: #ec4899;
+        }
+
+        .user-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .follow-btn {
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+            background: #ec4899;
+            color: white;
+        }
+        .follow-btn:hover {
+            opacity: 0.85;
+        }
+        .follow-btn.following {
+            background: transparent;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        .empty-section {
+            grid-column: span 3;
+            text-align: center;
+            padding: 30px 16px;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Nav with Search -->
+        <div class="top-nav">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search Ranka..." onkeydown="if(event.key==='Enter')doSearch()">
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="section">
+            <div class="section-header">
+                <h2>📂 Categories</h2>
+                <a href="categories.html">See All →</a>
+            </div>
+            <div class="category-scroll hide-scrollbar" id="categoryScroll">
+                <div style="color:#64748b;padding:8px;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Trending Posts -->
+        <div class="section">
+            <div class="section-header">
+                <h2>🔥 Trending Now</h2>
+            </div>
+            <div class="trending-grid" id="trendingGrid">
+                <div class="loading empty-section">
+                    <div class="spinner sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Users -->
+        <div class="section">
+            <div class="section-header">
+                <h2>👥 People to Follow</h2>
+            </div>
+            <div class="user-list" id="userList">
+                <div class="loading">
+                    <div class="spinner sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-spacer"></div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="feed.html">🏠<span>Feed</span></a>
+            <a href="search.html">🔍<span>Search</span></a>
+            <a href="create-post.html">➕<span>Post</span></a>
+            <a href="explore.html" class="active">🌍<span>Explore</span></a>
+            <a href="profile.html">👤<span>Profile</span></a>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // EXPLORE PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let followingSet = new Set();
+
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+
+            // Load all sections in parallel
+            const promises = [loadCategories(), loadTrending()];
+            if (user) {
+                await loadFollowing();
+                promises.push(loadSuggestedUsers());
+            } else {
+                document.getElementById('userList').innerHTML = '<div class="empty-state"><p>Sign in to see suggestions</p></div>';
+            }
+
+            await Promise.all(promises);
+        }
+
+        async function loadFollowing() {
+            const { data } = await sb
+                .from('follows')
+                .select('following_id')
+                .eq('follower_id', currentUser.id);
+            followingSet = new Set((data || []).map(f => f.following_id));
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            const container = document.getElementById('categoryScroll');
+
+            if (!categories || categories.length === 0) {
+                container.innerHTML = '<span style="color:#64748b;padding:8px;">No categories yet</span>';
+                return;
+            }
+
+            container.innerHTML = categories.map(c => `
+                <a href="category.html?slug=${c.slug}" class="cat-pill">${c.icon || ''} ${c.name}</a>
+            `).join('');
+        }
+
+        async function loadTrending() {
+            const { data: listings } = await sb
+                .from('listings')
+                .select('id, title, image_url, images')
+                .order('created_at', { ascending: false })
+                .limit(18);
+
+            const grid = document.getElementById('trendingGrid');
+
+            if (!listings || listings.length === 0) {
+                grid.innerHTML = '<div class="empty-section">No posts yet</div>';
+                return;
+            }
+
+            // Get scores for each listing
+            const withScores = await Promise.all(listings.map(async (l) => {
+                const scoreData = await getListingScore(l.id);
+                return { ...l, ...scoreData };
+            }));
+
+            // Sort by score
+            withScores.sort((a, b) => b.score - a.score);
+            const top18 = withScores.slice(0, 18);
+
+            grid.innerHTML = top18.map(l => {
+                const img = l.images?.[0] || l.image_url || '';
+                return `
+                    <div class="trending-item" onclick="window.location.href='listing.html?id=${l.id}'">
+                        ${img 
+                            ? `<img src="${img}" alt="${esc(l.title)}" loading="lazy" onerror="this.style.display='none'">` 
+                            : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">📸</div>`}
+                        <div class="overlay">
+                            <div class="score">${l.score > 0 ? '+' : ''}${l.score}</div>
+                            <div class="title">${esc(l.title)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadSuggestedUsers() {
+            if (!currentUser) return;
+
+            // Get users with most listings, excluding self and already followed
+            const { data: profiles } = await sb
+                .from('profiles')
+                .select('id, username, display_name, avatar_url')
+                .neq('id', currentUser.id)
+                .limit(20);
+
+            if (!profiles || profiles.length === 0) {
+                document.getElementById('userList').innerHTML = '<div class="empty-state"><p>No users to suggest</p></div>';
+                return;
+            }
+
+            // Get listing counts for each user
+            const withCounts = await Promise.all(profiles.map(async (p) => {
+                const { count } = await sb
+                    .from('listings')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('submitted_by', p.id);
+                return { ...p, listingCount: count || 0 };
+            }));
+
+            // Filter out already followed, sort by listing count
+            const suggestions = withCounts
+                .filter(p => !followingSet.has(p.id))
+                .sort((a, b) => b.listingCount - a.listingCount)
+                .slice(0, 8);
+
+            if (suggestions.length === 0) {
+                document.getElementById('userList').innerHTML = '<div class="empty-state"><p>You follow everyone! 🎉</p></div>';
+                return;
+            }
+
+            document.getElementById('userList').innerHTML = suggestions.map(user => {
+                const displayName = user.display_name || user.username || 'User';
+                return `
+                    <div class="user-row">
+                        <a href="profile.html?username=${user.username}" class="avatar">
+                            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : displayName.charAt(0).toUpperCase()}
+                        </a>
+                        <div class="user-info">
+                            <a href="profile.html?username=${user.username}" class="user-name">${esc(displayName)}</a>
+                            <div class="user-meta">@${esc(user.username)} · ${user.listingCount} posts</div>
+                        </div>
+                        <button class="follow-btn" id="followBtn_${user.id}" onclick="toggleFollow('${user.id}')">Follow</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function toggleFollow(userId) {
+            if (!currentUser) {
+                showToast('Sign in to follow');
+                return;
+            }
+
+            const btn = document.getElementById(`followBtn_${userId}`);
+
+            if (followingSet.has(userId)) {
+                await sb.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
+                followingSet.delete(userId);
+                if (btn) {
+                    btn.textContent = 'Follow';
+                    btn.className = 'follow-btn';
+                }
+            } else {
+                await sb.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+                followingSet.add(userId);
+                if (btn) {
+                    btn.textContent = 'Following';
+                    btn.className = 'follow-btn following';
+                }
+            }
+        }
+
+        function doSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (q) {
+                window.location.href = `search-results.html?q=${encodeURIComponent(q)}`;
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

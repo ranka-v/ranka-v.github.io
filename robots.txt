@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin-login.html
+Disallow: /admin-manage-categories.html
+Disallow: /settings.html
+Disallow: /my-listings.html
+Disallow: /edit-listing.html
+Disallow: /bookmarks.html
+Disallow: /notifications.html
+Disallow: /chat.html
+
+Sitemap: https://ranka.ug/sitemap.xml

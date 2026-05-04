@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Rankings</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+    <meta name="description" content="Official community rankings on Ranka. See the top 50 listings across all categories, updated in real-time.">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Official Rankings">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. See the top 50 ranked listings across all categories.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug/rankings.html">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Official Rankings">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== RANKINGS-SPECIFIC STYLES ========== */
+
+        /* Filter Bar */
+        .filter-bar {
+            padding: 8px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .filter-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Time Bar */
+        .time-bar {
+            padding: 8px 16px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .time-chip {
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #334155;
+            background: transparent;
+            color: #94a3b8;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .time-chip.active {
+            background: #fbbf24;
+            border-color: #fbbf24;
+            color: #0b0e14;
+        }
+
+        /* Podium Top 3 */
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            padding: 24px 16px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            min-height: 180px;
+        }
+
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #fff;
+            transition: transform 0.2s;
+        }
+        .podium-item:hover {
+            transform: translateY(-4px);
+        }
+        .podium-item.first {
+            order: 2;
+        }
+        .podium-item.second {
+            order: 1;
+        }
+        .podium-item.third {
+            order: 3;
+        }
+
+        .podium-avatar {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .podium-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .podium-first .podium-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border: 3px solid #fbbf24;
+        }
+        .podium-second .podium-avatar {
+            width: 64px;
+            height: 64px;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+            border: 3px solid #94a3b8;
+        }
+        .podium-third .podium-avatar {
+            width: 56px;
+            height: 56px;
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #cd7f32, #a0522d);
+            border: 3px solid #cd7f32;
+        }
+
+        .podium-medal {
+            position: absolute;
+            top: -8px;
+            right: -6px;
+            font-size: 1rem;
+        }
+
+        .podium-name {
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-align: center;
+            max-width: 80px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .podium-score {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .podium-first .podium-score {
+            color: #fbbf24;
+        }
+        .podium-second .podium-score {
+            color: #94a3b8;
+        }
+        .podium-third .podium-score {
+            color: #cd7f32;
+        }
+
+        /* Rankings List */
+        .rankings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 0 80px;
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: #fff;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .rank-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .rank-number {
+            font-weight: 800;
+            font-size: 0.9rem;
+            min-width: 28px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .rank-thumb {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .rank-thumb-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .rank-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .rank-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 2px;
+            flex-wrap: wrap;
+        }
+
+        .rank-user {
+            color: #64748b;
+            font-size: 0.7rem;
+        }
+
+        .rank-score {
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .rank-change {
+            font-size: 0.7rem;
+            min-width: 24px;
+            text-align: center;
+        }
+        .rank-change.up {
+            color: #10b981;
+        }
+        .rank-change.down {
+            color: #ef4444;
+        }
+
+        .podium-loading {
+            grid-column: span 3;
+            text-align: center;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Top Nav -->
+        <div class="top-nav">
+            <button class="back-btn" onclick="history.back()">←</button>
+            <h1>🏆 Rankings</h1>
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-bar hide-scrollbar" id="categoryFilter">
+            <button class="filter-chip active" data-category="" onclick="setCategory(this, '')">🌍 All</button>
+        </div>
+
+        <!-- Time Period -->
+        <div class="time-bar">
+            <button class="time-chip active" data-period="all" onclick="setPeriod(this, 'all')">All Time</button>
+            <button class="time-chip" data-period="week" onclick="setPeriod(this, 'week')">This Week</button>
+            <button class="time-chip" data-period="month" onclick="setPeriod(this, 'month')">This Month</button>
+        </div>
+
+        <!-- Podium -->
+        <div class="podium" id="podium">
+            <div class="loading podium-loading">
+                <div class="spinner sm"></div>
+            </div>
+        </div>
+
+        <!-- Rankings List -->
+        <div class="rankings-list" id="rankingsList">
+            <div class="loading">
+                <div class="spinner sm"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <div class="bottom-nav">
+            <a href="feed.html">🏠<span>Feed</span></a>
+            <a href="search.html">🔍<span>Search</span></a>
+            <a href="create-post.html">➕<span>Post</span></a>
+            <a href="explore.html">🌍<span>Explore</span></a>
+            <a href="profile.html">👤<span>Profile</span></a>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // RANKINGS PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentCategory = '';
+        let currentPeriod = 'all';
+        let allCategories = [];
+        let rankedListings = [];
+
+        async function init() {
+            await loadCategories();
+            await loadRankings();
+        }
+
+        async function loadCategories() {
+            const { data: categories } = await sb
+                .from('categories')
+                .select('*')
+                .order('name');
+
+            allCategories = categories || [];
+            const filterBar = document.getElementById('categoryFilter');
+            const chips = allCategories.map(c =>
+                `<button class="filter-chip" data-category="${c.slug}" onclick="setCategory(this, '${c.slug}')">${c.icon || ''} ${c.name}</button>`
+            ).join('');
+            filterBar.innerHTML = `<button class="filter-chip active" data-category="" onclick="setCategory(this, '')">🌍 All</button>${chips}`;
+        }
+
+        function setCategory(btn, slug) {
+            document.querySelectorAll('#categoryFilter .filter-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = slug;
+            loadRankings();
+        }
+
+        function setPeriod(btn, period) {
+            document.querySelectorAll('.time-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            currentPeriod = period;
+            loadRankings();
+        }
+
+        async function loadRankings() {
+            document.getElementById('rankingsList').innerHTML = '<div class="loading"><div class="spinner sm"></div></div>';
+            document.getElementById('podium').innerHTML = '<div class="loading podium-loading"><div class="spinner sm"></div></div>';
+
+            // Build query
+            let query = sb.from('listings').select(`
+                id, title, image_url, images, created_at, category_id, submitted_by,
+                categories:category_id (name, slug, icon),
+                profiles:submitted_by (username, display_name, avatar_url)
+            `);
+
+            // Category filter
+            if (currentCategory) {
+                const cat = allCategories.find(c => c.slug === currentCategory);
+                if (cat) query = query.eq('category_id', cat.id);
+            }
+
+            // Time filter
+            if (currentPeriod === 'week') {
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                query = query.gte('created_at', weekAgo.toISOString());
+            } else if (currentPeriod === 'month') {
+                const monthAgo = new Date();
+                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                query = query.gte('created_at', monthAgo.toISOString());
+            }
+
+            const { data: listings } = await query.order('created_at', { ascending: false }).limit(50);
+
+            if (!listings || listings.length === 0) {
+                document.getElementById('rankingsList').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No listings found for this period.</p></div>';
+                document.getElementById('podium').innerHTML = '';
+                return;
+            }
+
+            // Get scores for each listing
+            const withScores = await Promise.all(listings.map(async (l) => {
+                const scoreData = await getListingScore(l.id);
+                return { ...l, ...scoreData };
+            }));
+
+            // Sort by score
+            withScores.sort((a, b) => b.score - a.score);
+            rankedListings = withScores.slice(0, 50);
+
+            renderPodium();
+            renderRankingsList();
+        }
+
+        function renderPodium() {
+            const podium = document.getElementById('podium');
+            const top3 = rankedListings.slice(0, 3);
+
+            if (top3.length === 0) {
+                podium.innerHTML = '';
+                return;
+            }
+
+            // Ensure correct order: Second, First, Third
+            const items = [];
+            if (top3.length >= 2) items.push({ ...top3[1], position: 2 }); // Second
+            if (top3.length >= 1) items.push({ ...top3[0], position: 1 }); // First
+            if (top3.length >= 3) items.push({ ...top3[2], position: 3 }); // Third
+
+            podium.innerHTML = items.map(item => {
+                const posClass = item.position === 1 ? 'first' : item.position === 2 ? 'second' : 'third';
+                const medal = item.position === 1 ? '🥇' : item.position === 2 ? '🥈' : '🥉';
+                const img = item.images?.[0] || item.image_url || '';
+                const profile = item.profiles || {};
+                const displayName = profile.display_name || profile.username || 'User';
+
+                return `
+                    <a href="listing.html?id=${item.id}" class="podium-item podium-${posClass}">
+                        <div class="podium-avatar">
+                            ${img ? `<img src="${img}" alt="" onerror="this.style.display='none'">` : displayName.charAt(0).toUpperCase()}
+                            <span class="podium-medal">${medal}</span>
+                        </div>
+                        <div class="podium-name">${esc(item.title)}</div>
+                        <div class="podium-score">${item.score > 0 ? '+' : ''}${item.score} pts</div>
+                    </a>`;
+            }).join('');
+        }
+
+        function renderRankingsList() {
+            const list = document.getElementById('rankingsList');
+
+            if (rankedListings.length <= 3) {
+                list.innerHTML = '<div class="empty-state"><p>All rankings shown in the podium above.</p></div>';
+                return;
+            }
+
+            list.innerHTML = rankedListings.map((item, index) => {
+                const rank = index + 1;
+                const img = item.images?.[0] || item.image_url || '';
+                const cat = item.categories || {};
+                const profile = item.profiles || {};
+                const displayName = profile.display_name || profile.username || 'User';
+                const scoreClass = item.score > 0 ? 'score-pos' : item.score < 0 ? 'score-neg' : 'score-zero';
+
+                // Medal emoji for top 3, number for others
+                const rankDisplay = rank <= 3
+                    ? ['🥇', '🥈', '🥉'][rank - 1]
+                    : `#${rank}`;
+
+                return `
+                    <a href="listing.html?id=${item.id}" class="rank-item">
+                        <div class="rank-number">${rankDisplay}</div>
+                        ${img
+                            ? `<img src="${img}" class="rank-thumb" alt="" loading="lazy" onerror="this.style.display='none'">`
+                            : `<div class="rank-thumb-placeholder">📸</div>`}
+                        <div class="rank-info">
+                            <div class="rank-title">${esc(item.title)}</div>
+                            <div class="rank-meta">
+                                <span class="category-tag">${cat.icon || ''} ${cat.name || ''}</span>
+                                <span class="rank-user">by @${esc(displayName)}</span>
+                            </div>
+                        </div>
+                        <div class="rank-score ${scoreClass}">${item.score > 0 ? '+' : ''}${item.score}</div>
+                    </a>`;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

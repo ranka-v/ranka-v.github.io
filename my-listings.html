@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • My Listings</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== MY LISTINGS-SPECIFIC STYLES ========== */
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 1.4rem;
+            color: #fbbf24;
+        }
+
+        /* Stats Mini */
+        .stats-mini {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        .stats-mini strong {
+            color: #cbd5e1;
+        }
+
+        /* Listings List */
+        .listings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Listing Card */
+        .listing-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 16px;
+            transition: border-color 0.2s;
+        }
+        .listing-card:hover {
+            border-color: #334155;
+        }
+
+        .listing-card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .listing-card-icon {
+            font-size: 1.8rem;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .listing-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .listing-card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        .listing-card-title a {
+            color: #fff;
+            text-decoration: none;
+        }
+        .listing-card-title a:hover {
+            color: #ec4899;
+        }
+
+        .listing-card-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        .listing-card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .listing-description {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .listing-card-category {
+            background: rgba(236, 72, 153, 0.15);
+            color: #fbb8d4;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .listing-card-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px solid #1e293b;
+            padding-top: 12px;
+        }
+
+        .listing-card-score {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Delete Confirmation Modal */
+        .modal-card h3 {
+            color: #ef4444;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns">
+                <a href="submit.html" class="btn btn-primary btn-sm">+ New</a>
+                <a href="profile.html" class="btn btn-sm">Profile</a>
+                <button class="btn btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>📋 My Listings</h1>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-mini" id="statsMini" style="display:none;">
+            <span>Total: <strong id="statTotal">0</strong></span>
+            <span>Total Upvotes: <strong id="statUpvotes">0</strong></span>
+        </div>
+
+        <!-- Listings -->
+        <div class="listings-list" id="listingsList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading your listings...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-card">
+            <h3>🗑️ Delete Listing</h3>
+            <p>Are you sure you want to delete <strong id="deleteListingTitle">-</strong>?</p>
+            <p style="font-size:0.85rem;color:#64748b;">This will also remove all votes and comments for this listing. This cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // MY LISTINGS PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let deleteTargetId = null;
+
+        // ============ INIT ============
+        async function init() {
+            currentUser = await requireAuth('my-listings.html');
+            if (!currentUser) return;
+
+            await loadMyListings();
+        }
+
+        // ============ LOAD LISTINGS ============
+        async function loadMyListings() {
+            const listDiv = document.getElementById('listingsList');
+            listDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading your listings...</p>
+                </div>
+            `;
+
+            const { data: listings, error } = await sb
+                .from('listings')
+                .select(`
+                    id, title, description, location, created_at, category_id,
+                    categories:category_id (name, slug, icon)
+                `)
+                .eq('submitted_by', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚠️</div>
+                        <h3>Error loading listings</h3>
+                        <p>Please try again.</p>
+                    </div>`;
+                return;
+            }
+
+            if (!listings || listings.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <h3>No listings yet</h3>
+                        <p>You haven't submitted anything. Be the first to rank something!</p>
+                        <a href="submit.html" class="btn btn-primary" style="margin-top:12px;">+ Submit a Listing</a>
+                    </div>`;
+                document.getElementById('statsMini').style.display = 'none';
+                return;
+            }
+
+            // Get vote counts for each listing
+            let totalUpvotes = 0;
+            const listingsWithScores = await Promise.all(listings.map(async (listing) => {
+                const scoreData = await getListingScore(listing.id);
+                totalUpvotes += scoreData.upvotes;
+                return {
+                    ...listing,
+                    ...scoreData
+                };
+            }));
+
+            // Update stats
+            document.getElementById('statsMini').style.display = 'flex';
+            document.getElementById('statTotal').textContent = listingsWithScores.length;
+            document.getElementById('statUpvotes').textContent = formatNum(totalUpvotes);
+
+            // Render
+            listDiv.innerHTML = listingsWithScores.map(listing => {
+                const cat = listing.categories;
+                const scoreClass = listing.score > 0 ? 'score-pos' : listing.score < 0 ? 'score-neg' : 'score-zero';
+                const shortDesc = listing.description
+                    ? (listing.description.length > 100 ? listing.description.substring(0, 100) + '...' : listing.description)
+                    : '';
+
+                return `
+                    <div class="listing-card">
+                        <div class="listing-card-top">
+                            <div class="listing-card-icon">${cat?.icon || '📂'}</div>
+                            <div class="listing-card-info">
+                                <div class="listing-card-title">
+                                    <a href="listing.html?id=${listing.id}">${esc(listing.title)}</a>
+                                </div>
+                                ${shortDesc ? `<p class="listing-description">${esc(shortDesc)}</p>` : ''}
+                                <div class="listing-card-meta">
+                                    <span class="listing-card-category">${cat?.name || 'Unknown'}</span>
+                                    ${listing.location ? `<span>📍 ${esc(listing.location)}</span>` : ''}
+                                    <span>🕒 ${timeAgo(listing.created_at)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="listing-card-actions">
+                            <a href="listing.html?id=${listing.id}" class="btn btn-xs">👁 View</a>
+                            <a href="edit-listing.html?id=${listing.id}" class="btn btn-xs">✏️ Edit</a>
+                            <button class="btn btn-xs btn-danger" onclick="openDeleteModal('${listing.id}', '${esc(listing.title).replace(/'/g, "\\'")}')">🗑 Delete</button>
+                            <div class="listing-card-score ${scoreClass}">
+                                ▲${listing.upvotes} ▼${listing.downvotes}
+                                <span style="margin-left:4px;">${listing.score > 0 ? '+' : ''}${listing.score}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ DELETE ============
+        function openDeleteModal(listingId, listingTitle) {
+            deleteTargetId = listingId;
+            document.getElementById('deleteListingTitle').textContent = listingTitle;
+            document.getElementById('deleteModal').classList.add('active');
+            document.getElementById('confirmDeleteBtn').disabled = false;
+            document.getElementById('confirmDeleteBtn').textContent = 'Delete';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            deleteTargetId = null;
+        }
+
+        async function confirmDelete() {
+            if (!deleteTargetId) return;
+
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = true;
+            btn.textContent = 'Deleting...';
+
+            // Delete related data
+            await Promise.all([
+                sb.from('comments').delete().eq('listing_id', deleteTargetId),
+                sb.from('votes').delete().eq('listing_id', deleteTargetId)
+            ]);
+
+            // Delete listing
+            const { error } = await sb
+                .from('listings')
+                .delete()
+                .eq('id', deleteTargetId)
+                .eq('submitted_by', currentUser.id);
+
+            if (error) {
+                showToast('Error deleting listing.');
+                btn.disabled = false;
+                btn.textContent = 'Delete';
+                return;
+            }
+
+            showToast('Listing deleted.');
+            closeDeleteModal();
+            await loadMyListings();
+        }
+
+        // Modal click outside to close
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+
+        // Escape key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDeleteModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>

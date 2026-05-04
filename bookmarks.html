@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • My Bookmarks</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="noindex, follow">
+    <meta name="googlebot" content="noindex, follow">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== BOOKMARKS-SPECIFIC STYLES ========== */
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 1.4rem;
+            color: #fbbf24;
+        }
+
+        /* Bookmarks List */
+        .bookmarks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Bookmark Card */
+        .bookmark-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 16px;
+            padding: 14px;
+            transition: border-color 0.2s;
+            text-decoration: none;
+            color: #fff;
+        }
+        .bookmark-card:hover {
+            border-color: #334155;
+        }
+
+        .bookmark-icon {
+            font-size: 1.8rem;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .bookmark-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bookmark-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bookmark-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .bookmark-category {
+            background: rgba(236, 72, 153, 0.15);
+            color: #fbb8d4;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .bookmark-date {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .bookmark-score {
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .bookmark-location {
+            color: #64748b;
+            font-size: 0.75rem;
+        }
+
+        .bookmark-remove {
+            background: none;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .bookmark-remove:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="index.html" class="logo">
+                <div class="crescent-ball"></div>
+                <span class="logo-text">Ranka</span>
+            </a>
+            <div class="nav-btns">
+                <a href="category.html?slug=street-food" class="btn btn-sm">Browse</a>
+                <a href="profile.html" class="btn btn-sm">Profile</a>
+                <button class="btn btn-sm" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>🔖 My Bookmarks</h1>
+            <span style="color:#64748b;font-size:0.85rem;" id="bookmarkCount"></span>
+        </div>
+
+        <!-- Bookmarks List -->
+        <div class="bookmarks-list" id="bookmarksList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading bookmarks...</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2025 Ranka. Built for East Africa.<br>
+            <span style="color: #ec4899;">Rank the best. Discover the rest.</span>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // BOOKMARKS PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+
+        // ============ INIT ============
+        async function init() {
+            currentUser = await requireAuth('bookmarks.html');
+            if (!currentUser) return;
+
+            await loadBookmarks();
+        }
+
+        // ============ LOAD BOOKMARKS ============
+        async function loadBookmarks() {
+            const listDiv = document.getElementById('bookmarksList');
+            listDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading bookmarks...</p>
+                </div>
+            `;
+
+            // Get user's bookmarks with listing details
+            const { data: bookmarks, error } = await sb
+                .from('bookmarks')
+                .select(`
+                    id, created_at, listing_id,
+                    listings:listing_id (
+                        id, title, location, category_id,
+                        categories:category_id (name, icon, slug)
+                    )
+                `)
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading bookmarks:', error);
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">⚠️</div>
+                        <h3>Error loading bookmarks</h3>
+                        <p>Please try again.</p>
+                    </div>`;
+                return;
+            }
+
+            if (!bookmarks || bookmarks.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔖</div>
+                        <h3>No bookmarks yet</h3>
+                        <p>Save listings you like by tapping the bookmark button.</p>
+                        <a href="category.html?slug=street-food" class="btn btn-primary" style="margin-top:12px;">Browse Listings</a>
+                    </div>`;
+                document.getElementById('bookmarkCount').textContent = '';
+                return;
+            }
+
+            document.getElementById('bookmarkCount').textContent = `${bookmarks.length} saved`;
+
+            // Get vote scores for each bookmarked listing
+            const bookmarksWithScores = await Promise.all(bookmarks.map(async (bookmark) => {
+                const listing = bookmark.listings;
+                if (!listing) return null;
+
+                const scoreData = await getListingScore(listing.id);
+                return {
+                    bookmarkId: bookmark.id,
+                    savedAt: bookmark.created_at,
+                    listing: { ...listing, ...scoreData }
+                };
+            }));
+
+            // Filter out any nulls (deleted listings)
+            const validBookmarks = bookmarksWithScores.filter(b => b !== null);
+
+            if (validBookmarks.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔖</div>
+                        <h3>No bookmarks</h3>
+                        <p>The listings you saved may have been deleted.</p>
+                        <a href="category.html?slug=street-food" class="btn btn-primary" style="margin-top:12px;">Browse Listings</a>
+                    </div>`;
+                return;
+            }
+
+            listDiv.innerHTML = validBookmarks.map(item => {
+                const listing = item.listing;
+                const cat = listing.categories;
+                const scoreClass = listing.score > 0 ? 'score-pos' : listing.score < 0 ? 'score-neg' : 'score-zero';
+
+                return `
+                    <a href="listing.html?id=${listing.id}" class="bookmark-card">
+                        <div class="bookmark-icon">${cat?.icon || '📂'}</div>
+                        <div class="bookmark-info">
+                            <div class="bookmark-title">${esc(listing.title)}</div>
+                            <div class="bookmark-meta">
+                                <span class="bookmark-category">${cat?.name || 'Unknown'}</span>
+                                ${listing.location ? `<span class="bookmark-location">📍 ${esc(listing.location)}</span>` : ''}
+                                <span class="bookmark-date">Saved ${timeAgo(item.savedAt)}</span>
+                            </div>
+                        </div>
+                        <div class="bookmark-score ${scoreClass}">
+                            ${listing.score > 0 ? '+' : ''}${listing.score}
+                        </div>
+                        <button class="bookmark-remove" onclick="removeBookmark(event, '${item.bookmarkId}')" title="Remove bookmark">×</button>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // ============ REMOVE BOOKMARK ============
+        async function removeBookmark(e, bookmarkId) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const { error } = await sb
+                .from('bookmarks')
+                .delete()
+                .eq('id', bookmarkId)
+                .eq('user_id', currentUser.id);
+
+            if (error) {
+                showToast('Error removing bookmark.');
+                return;
+            }
+
+            showToast('Bookmark removed.');
+            await loadBookmarks();
+        }
+
+        init();
+    </script>
+</body>
+</html>

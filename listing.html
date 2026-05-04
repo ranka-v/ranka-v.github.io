@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Ranka • Post</title>
+
+    <!-- Security & SEO -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+    <meta name="rating" content="General">
+    <meta name="google" content="notranslate">
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Ranka">
+    <meta property="og:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta property="og:description" content="East Africa's community-driven ranking platform. Vote, rank, and discover the best products, places, and services.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ranka.ug">
+    <meta property="og:image" content="https://ranka.ug/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Ranka — Rank the Best. Discover the Rest.">
+    <meta name="twitter:description" content="East Africa's community-driven ranking platform.">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="ranka.css">
+    <style>
+        /* ========== LISTING-SPECIFIC STYLES ========== */
+
+        .app {
+            padding-bottom: 20px;
+        }
+
+        /* Post Header */
+        .post-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px 8px;
+        }
+
+        .post-header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .post-header-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .post-username {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #fff;
+            text-decoration: none;
+        }
+        .post-username:hover {
+            color: #ec4899;
+        }
+
+        .post-time {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .post-location {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Title + Caption */
+        .post-body {
+            padding: 0 16px 12px;
+        }
+
+        .post-title-display {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            line-height: 1.3;
+        }
+
+        .post-caption-display {
+            font-size: 0.95rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .post-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .post-tag {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .post-tag:hover {
+            color: #ec4899;
+        }
+
+        /* Image */
+        .post-image-container {
+            width: 100%;
+            background: #0f172a;
+            position: relative;
+        }
+
+        .post-image-container.single-image img {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .image-carousel {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .image-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .image-carousel img {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            display: block;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            aspect-ratio: 16/9;
+            max-height: 300px;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.06), rgba(15, 23, 42, 0.6));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .carousel-counter {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            z-index: 2;
+        }
+
+        .multi-image-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            transition: all 0.2s;
+        }
+        .carousel-dot.active {
+            background: #ec4899;
+            width: 16px;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .vote-group {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+            padding: 2px;
+        }
+
+        .vote-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 19px;
+            border: none;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+        .vote-btn:hover {
+            color: #fff;
+        }
+        .vote-btn.voted-up {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .vote-btn.voted-down {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .vote-count {
+            font-weight: 700;
+            font-size: 0.95rem;
+            min-width: 36px;
+            text-align: center;
+        }
+        .vote-count.pos {
+            color: #10b981;
+        }
+        .vote-count.neg {
+            color: #ef4444;
+        }
+        .vote-count.zero {
+            color: #94a3b8;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 14px;
+            transition: all 0.15s;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        .action-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .action-btn .icon {
+            font-size: 1.2rem;
+        }
+        .action-btn.bookmarked {
+            color: #fbbf24;
+        }
+
+        .action-spacer {
+            flex: 1;
+        }
+
+        /* Comments */
+        .comments-section {
+            padding: 16px;
+        }
+
+        .comments-section h3 {
+            font-size: 0.95rem;
+            margin-bottom: 14px;
+            color: #cbd5e1;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .comment-form input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 18px;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.6);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        .comment-form input:focus {
+            outline: none;
+            border-color: #ec4899;
+        }
+
+        .comment-form button {
+            padding: 8px 16px;
+            border-radius: 18px;
+            background: #ec4899;
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .comment-form button:disabled {
+            opacity: 0.5;
+        }
+
+        .comment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .comment-body {
+            flex: 1;
+        }
+
+        .comment-username {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        .comment-content {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+        }
+
+        .comment-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 2px;
+        }
+
+        .comment-time {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .comment-delete {
+            font-size: 0.7rem;
+            color: #64748b;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .comment-delete:hover {
+            color: #ef4444;
+        }
+
+        .no-comments {
+            text-align: center;
+            color: #64748b;
+            padding: 20px;
+            font-size: 0.85rem;
+        }
+
+        .login-prompt {
+            text-align: center;
+            color: #64748b;
+            padding: 12px;
+            font-size: 0.85rem;
+        }
+        .login-prompt a {
+            color: #ec4899;
+        }
+
+        /* Share Modal */
+        .share-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .share-modal-overlay.active {
+            display: flex;
+        }
+
+        .share-modal {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 24px 24px 0 0;
+            padding: 20px 16px 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .share-modal h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            text-align: center;
+            color: #fbbf24;
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid #1e293b;
+            transition: all 0.15s;
+            text-decoration: none;
+            color: #cbd5e1;
+            font-size: 0.75rem;
+        }
+        .share-option:hover {
+            border-color: #ec4899;
+            background: rgba(236, 72, 153, 0.08);
+        }
+        .share-option .share-icon {
+            font-size: 1.5rem;
+        }
+
+        .copy-link-row {
+            display: flex;
+            gap: 8px;
+        }
+        .copy-link-row input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            background: rgba(15, 23, 42, 0.6);
+            color: #fff;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+        .copy-link-row button {
+            padding: 10px 16px;
+            border-radius: 16px;
+            border: none;
+            background: #ec4899;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .share-close {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 12px;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body>
+    <div class="app">
+        <div class="top-nav">
+            <button class="back-btn" onclick="history.back()">←</button>
+            <h1>Post</h1>
+            <button class="action-btn" id="bookmarkBtn" onclick="toggleBookmark()">🏷️</button>
+        </div>
+
+        <div id="postContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading post...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Share Modal -->
+    <div class="share-modal-overlay" id="shareModal">
+        <div class="share-modal">
+            <h3>↗️ Share</h3>
+            <div class="share-options">
+                <a class="share-option" id="shareTwitter" target="_blank" rel="noopener">
+                    <span class="share-icon">𝕏</span> Twitter
+                </a>
+                <a class="share-option" id="shareFacebook" target="_blank" rel="noopener">
+                    <span class="share-icon">📘</span> Facebook
+                </a>
+                <a class="share-option" id="shareWhatsApp" target="_blank" rel="noopener">
+                    <span class="share-icon">💬</span> WhatsApp
+                </a>
+                <a class="share-option" id="shareLinkedIn" target="_blank" rel="noopener">
+                    <span class="share-icon">💼</span> LinkedIn
+                </a>
+            </div>
+            <div class="copy-link-row">
+                <input type="text" id="shareUrlInput" readonly>
+                <button onclick="copyShareLink()">Copy</button>
+            </div>
+            <button class="share-close" onclick="closeShareModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // LISTING PAGE LOGIC
+        // ============================================
+
+        initSupabase();
+
+        let currentUser = null;
+        let listingData = null;
+        let userVote = null;
+        let isBookmarked = false;
+        let upCount = 0, downCount = 0;
+        let rankingInfo = null;
+        let allImages = [];
+
+        async function init() {
+            const { data: { user } } = await sb.auth.getUser();
+            currentUser = user;
+
+            const id = getUrlParam('id');
+            if (!id) {
+                document.getElementById('postContent').innerHTML = '<div class="loading"><p>No post ID.</p></div>';
+                return;
+            }
+            await loadPost(id);
+        }
+
+        async function loadPost(id) {
+            const { data: listing } = await sb
+                .from('listings')
+                .select(`*, categories:category_id (name, slug, icon), profiles:submitted_by (id, username, display_name, avatar_url)`)
+                .eq('id', id)
+                .single();
+
+            if (!listing) {
+                document.getElementById('postContent').innerHTML = '<div class="loading"><p>Post not found.</p></div>';
+                return;
+            }
+
+            listingData = listing;
+            allImages = listing.images?.length ? listing.images : (listing.image_url ? [listing.image_url] : []);
+
+            // Load user's vote and bookmark status
+            if (currentUser) {
+                const [voteRes, bookmarkRes] = await Promise.all([
+                    sb.from('votes').select('vote_type').eq('listing_id', id).eq('user_id', currentUser.id).maybeSingle(),
+                    sb.from('bookmarks').select('id').eq('listing_id', id).eq('user_id', currentUser.id).maybeSingle()
+                ]);
+                userVote = voteRes.data?.vote_type || null;
+                isBookmarked = !!bookmarkRes.data;
+            }
+
+            // Get vote counts
+            const scoreData = await getListingScore(id);
+            upCount = scoreData.upvotes;
+            downCount = scoreData.downvotes;
+
+            // Get ranking
+            if (listing.category_id) {
+                const rankData = await getCategoryRank(id, listing.category_id);
+                if (rankData && rankData.rank <= 10) {
+                    rankingInfo = {
+                        rank: rankData.rank,
+                        total: rankData.total,
+                        category: listing.categories
+                    };
+                }
+            }
+
+            // Update OG tags for this specific listing
+            updateOgTags(listing);
+
+            renderPost();
+            updateBookmarkUI();
+            loadComments(id);
+        }
+
+        function updateOgTags(listing) {
+            const title = `${listing.title} — Ranka Rankings`;
+            const description = listing.description || listing.caption || 'Check out this ranking on Ranka.';
+            const image = allImages[0] || 'https://ranka.ug/og-image.png';
+
+            document.title = `Ranka • ${listing.title}`;
+            document.querySelector('meta[property="og:title"]')?.setAttribute('content', title);
+            document.querySelector('meta[property="og:description"]')?.setAttribute('content', description.substring(0, 200));
+            document.querySelector('meta[property="og:image"]')?.setAttribute('content', image);
+            document.querySelector('meta[property="og:url"]')?.setAttribute('content', `${window.location.origin}/listing.html?id=${listing.id}`);
+            document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', title);
+            document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', description.substring(0, 200));
+        }
+
+        function renderPost() {
+            const profile = listingData.profiles || {};
+            const cat = listingData.categories || {};
+            const displayName = profile.display_name || profile.username || 'User';
+            const score = upCount - downCount;
+            const scoreClass = score > 0 ? 'pos' : score < 0 ? 'neg' : 'zero';
+            const caption = listingData.caption || listingData.description || '';
+
+            // Render image section
+            let imageHtml = '';
+            if (allImages.length === 1) {
+                imageHtml = `
+                    <div class="post-image-container single-image">
+                        <img src="${allImages[0]}" alt="${esc(listingData.title)}" onerror="this.parentElement.innerHTML='<div class=image-placeholder>📸</div>'">
+                    </div>`;
+            } else if (allImages.length > 1) {
+                const slides = allImages.map((img, i) => 
+                    `<img src="${img}" alt="Image ${i + 1}" onerror="this.style.display='none'">`
+                ).join('');
+                const dots = allImages.map((_, i) => 
+                    `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`
+                ).join('');
+                imageHtml = `
+                    <div class="post-image-container">
+                        <div class="image-carousel" onscroll="updateCarousel(this)">
+                            ${slides}
+                        </div>
+                        <div class="carousel-counter">1/${allImages.length}</div>
+                        <div class="carousel-dots">${dots}</div>
+                    </div>`;
+            } else {
+                imageHtml = `<div class="image-placeholder">📸</div>`;
+            }
+
+            document.getElementById('postContent').innerHTML = `
+                <div class="post-header">
+                    <a href="profile.html?username=${profile.username || ''}" class="avatar">
+                        ${profile.avatar_url ? `<img src="${profile.avatar_url}" alt="">` : displayName.charAt(0).toUpperCase()}
+                    </a>
+                    <div class="post-header-info">
+                        <div class="post-header-top">
+                            <a href="profile.html?username=${profile.username || ''}" class="post-username">${esc(displayName)}</a>
+                            <span class="post-time">· ${timeAgo(listingData.created_at)}</span>
+                            ${rankingInfo ? `<span class="ranking-badge">🏆 #${rankingInfo.rank} in ${esc(rankingInfo.category?.name || '')}</span>` : ''}
+                        </div>
+                        ${listingData.location ? `<div class="post-location">📍 ${esc(listingData.location)}</div>` : ''}
+                    </div>
+                    <a href="category.html?slug=${cat.slug || ''}" class="category-tag">${cat.icon || ''} ${cat.name || ''}</a>
+                </div>
+
+                <div class="post-body">
+                    <div class="post-title-display">${esc(listingData.title)}</div>
+                    ${caption ? `<div class="post-caption-display">${esc(caption)}</div>` : ''}
+                    ${listingData.tags?.length ? `
+                        <div class="post-tags">${listingData.tags.map(t => `<a href="search-results.html?q=${encodeURIComponent(t)}" class="post-tag">#${esc(t)}</a>`).join(' ')}</div>
+                    ` : ''}
+                </div>
+
+                ${imageHtml}
+
+                <div class="action-bar">
+                    <div class="vote-group">
+                        <button class="vote-btn ${userVote === 'up' ? 'voted-up' : ''}" onclick="handleVote('up')">▲</button>
+                        <span class="vote-count ${scoreClass}" id="voteScore">${score > 0 ? '+' : ''}${score}</span>
+                        <button class="vote-btn ${userVote === 'down' ? 'voted-down' : ''}" onclick="handleVote('down')">▼</button>
+                    </div>
+                    <span class="action-btn" style="cursor:default;">💬 <span id="commentCountDisplay">0</span></span>
+                    <button class="action-btn" onclick="sharePost()">↗️ Share</button>
+                    <div class="action-spacer"></div>
+                    <a href="chat.html?listing=${listingData.id}" class="action-btn">💭 Chat</a>
+                </div>
+
+                <div class="comments-section">
+                    <h3>💬 Comments</h3>
+                    ${currentUser ? `
+                        <div class="comment-form">
+                            <input type="text" id="commentInput" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')submitComment()">
+                            <button onclick="submitComment()" id="commentSubmitBtn">Post</button>
+                        </div>
+                    ` : `<p class="login-prompt"><a href="login.html">Login</a> to comment</p>`}
+                    <div class="comment-list" id="commentList">
+                        <div class="loading"><div class="spinner sm"></div></div>
+                    </div>
+                </div>`;
+        }
+
+        function updateCarousel(el) {
+            const slideWidth = el.offsetWidth;
+            const index = Math.round(el.scrollLeft / slideWidth);
+            const total = allImages.length;
+
+            const counter = el.parentElement.querySelector('.carousel-counter');
+            if (counter) counter.textContent = `${index + 1}/${total}`;
+
+            el.parentElement.querySelectorAll('.carousel-dot').forEach((d, i) => {
+                d.classList.toggle('active', i === index);
+            });
+        }
+
+        async function handleVote(type) {
+            if (!currentUser) {
+                showToast('Login to vote');
+                return;
+            }
+
+            const result = await castVote(listingData.id, currentUser.id, type);
+            userVote = result.voted;
+            upCount = result.upvotes;
+            downCount = result.downvotes;
+
+            const score = result.score;
+            const scoreEl = document.getElementById('voteScore');
+            if (scoreEl) {
+                scoreEl.textContent = `${score > 0 ? '+' : ''}${score}`;
+                scoreEl.className = `vote-count ${score > 0 ? 'pos' : score < 0 ? 'neg' : 'zero'}`;
+            }
+
+            const upBtn = document.querySelector('.vote-btn:first-child');
+            const downBtn = document.querySelector('.vote-btn:last-child');
+            if (upBtn) upBtn.className = `vote-btn ${userVote === 'up' ? 'voted-up' : ''}`;
+            if (downBtn) downBtn.className = `vote-btn ${userVote === 'down' ? 'voted-down' : ''}`;
+        }
+
+        async function toggleBookmark() {
+            if (!currentUser) {
+                showToast('Login to bookmark');
+                return;
+            }
+
+            const nowBookmarked = await toggleBookmark(listingData.id, currentUser.id);
+            isBookmarked = nowBookmarked;
+            updateBookmarkUI();
+            showToast(isBookmarked ? 'Saved!' : 'Unsaved');
+        }
+
+        function updateBookmarkUI() {
+            const btn = document.getElementById('bookmarkBtn');
+            if (btn) {
+                btn.className = `action-btn ${isBookmarked ? 'bookmarked' : ''}`;
+                btn.innerHTML = isBookmarked ? '🔖' : '🏷️';
+            }
+        }
+
+        function sharePost() {
+            const url = `${window.location.origin}/listing.html?id=${listingData.id}`;
+            const title = listingData.title;
+
+            // Try native share first
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => {});
+                return;
+            }
+
+            // Show custom share modal
+            const modal = document.getElementById('shareModal');
+            document.getElementById('shareUrlInput').value = url;
+            document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+            document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            document.getElementById('shareWhatsApp').href = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`;
+            document.getElementById('shareLinkedIn').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            modal.classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareUrlInput');
+            input.select();
+            document.execCommand('copy');
+            showToast('Link copied!');
+        }
+
+        // Close modal on overlay click
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'shareModal') closeShareModal();
+        });
+
+        // ============ COMMENTS ============
+        async function loadComments(id) {
+            const { data: comments } = await sb
+                .from('comments')
+                .select(`id, content, created_at, user_id, profiles:user_id (username, display_name)`)
+                .eq('listing_id', id)
+                .order('created_at', { ascending: true });
+
+            const list = document.getElementById('commentList');
+            document.getElementById('commentCountDisplay').textContent = comments?.length || 0;
+
+            if (!comments?.length) {
+                list.innerHTML = '<div class="no-comments">No comments yet.</div>';
+                return;
+            }
+
+            list.innerHTML = comments.map(c => {
+                const p = c.profiles || {};
+                const name = p.display_name || p.username || 'User';
+                const isOwner = currentUser && c.user_id === currentUser.id;
+                return `
+                    <div class="comment-item">
+                        <a href="profile.html?username=${p.username || ''}" class="avatar sm">${name.charAt(0).toUpperCase()}</a>
+                        <div class="comment-body">
+                            <a href="profile.html?username=${p.username || ''}" class="comment-username">${esc(name)}</a>
+                            <div class="comment-content">${esc(c.content)}</div>
+                            <div class="comment-footer">
+                                <span class="comment-time">${timeAgo(c.created_at)}</span>
+                                ${isOwner ? `<button class="comment-delete" onclick="deleteComment(${c.id})">Delete</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        async function submitComment() {
+            if (!currentUser) return;
+            const input = document.getElementById('commentInput');
+            const content = input.value.trim();
+            if (!content) return;
+
+            const btn = document.getElementById('commentSubmitBtn');
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            await sb.from('comments').insert({
+                listing_id: listingData.id,
+                user_id: currentUser.id,
+                content
+            });
+
+            input.value = '';
+            btn.disabled = false;
+            btn.textContent = 'Post';
+            loadComments(listingData.id);
+        }
+
+        async function deleteComment(id) {
+            if (!confirm('Delete this comment?')) return;
+            await sb.from('comments').delete().eq('id', id).eq('user_id', currentUser.id);
+            loadComments(listingData.id);
+        }
+
+        init();
+    </script>
+</body>
+</html>
