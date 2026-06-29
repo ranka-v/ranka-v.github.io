@@ -1,0 +1,16 @@
+# robots.txt for Ranka (GitHub Pages)
+# Allow all crawlers to index public content.
+
+User-agent: *
+Allow: /
+
+# Block sensitive or redundant paths to keep search results clean
+Disallow: /admin
+Disallow: /api
+Disallow: /drafts
+Disallow: /login
+Disallow: /logout
+Disallow: /register
+
+# Sitemap location
+Sitemap: https://ranka-v.github.io/sitemap.xml
